@@ -1,0 +1,31 @@
+{
+  "name": "buzz-quiz",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "LAN-only Jackbox-style quiz party game with PlayStation Buzz controllers + phones",
+  "scripts": {
+    "dev:server": "bun --watch server/src/index.ts",
+    "dev:client": "vite",
+    "dev": "concurrently -kn srv,web -c cyan,magenta \"bun run dev:server\" \"bun run dev:client\"",
+    "build": "vite build",
+    "start": "NODE_ENV=production bun server/src/index.ts",
+    "typecheck": "tsc -p tsconfig.server.json && tsc -p tsconfig.client.json"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11"
+  }
+}
