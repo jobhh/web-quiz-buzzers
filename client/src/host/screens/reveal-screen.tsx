@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import type { GameState } from "@shared/game-state";
 import { useConfetti } from "@client/lib/use-confetti";
+import { useScreenShake } from "@client/lib/use-screen-shake";
 import { PlayerAvatar } from "../components/player-avatar";
 import { ScoreDeltaPopup } from "../components/score-delta-popup";
 
@@ -20,13 +21,18 @@ export function RevealScreen({ state }: Props) {
   const q = state.currentQuestion;
   const reveal = state.lastReveal;
   const { burst } = useConfetti();
+  const shake = useScreenShake();
   const someoneScored = reveal
     ? Object.values(reveal.scoreDeltas).some((d) => d > 0)
+    : false;
+  const someoneLost = reveal
+    ? Object.values(reveal.scoreDeltas).some((d) => d < 0)
     : false;
 
   useEffect(() => {
     if (someoneScored) burst();
-  }, [someoneScored, burst]);
+    if (someoneLost) shake();
+  }, [someoneScored, someoneLost, burst, shake]);
 
   if (!q || !reveal) return null;
   const correctIdx = reveal.correctIndex;

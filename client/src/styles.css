@@ -1,3 +1,52 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0a0014;
+    color: #00f5ff;
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    /* Subtle radial gradient adds depth to the dark bg without distracting. */
+    background-image: radial-gradient(
+      ellipse at 50% 0%,
+      rgba(255, 0, 110, 0.08) 0%,
+      transparent 60%
+    );
+    background-attachment: fixed;
+  }
+  h1, h2, h3, .display {
+    font-family: "Bungee", system-ui, sans-serif;
+    letter-spacing: 0.04em;
+  }
+}
+
+@layer utilities {
+  .text-glow-pink {
+    color: #ff006e;
+    filter: drop-shadow(0 0 6px #ff006e) drop-shadow(0 0 18px rgba(255, 0, 110, 0.5));
+  }
+  .text-glow-cyan {
+    color: #00f5ff;
+    filter: drop-shadow(0 0 6px #00f5ff) drop-shadow(0 0 18px rgba(0, 245, 255, 0.5));
+  }
+  .text-glow-gold {
+    color: #ffd700;
+    filter: drop-shadow(0 0 6px #ffd700) drop-shadow(0 0 18px rgba(255, 215, 0, 0.5));
+  }
+
+  .scanlines::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background-image: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.18) 0,
+      rgba(0, 0, 0, 0.18) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+  }
+}
