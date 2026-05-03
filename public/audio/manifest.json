@@ -1,0 +1,17 @@
+{
+  "music": {
+    "lobby": { "src": "/audio/music/lobby-loop.mp3", "loop": true, "source": "Pixabay (placeholder)" },
+    "gameplay": { "src": "/audio/music/gameplay-loop.mp3", "loop": true, "source": "Pixabay (placeholder)" },
+    "tension": { "src": "/audio/music/tension-ticking.mp3", "loop": true, "source": "Pixabay (placeholder)" },
+    "win": { "src": "/audio/music/win-fanfare.mp3", "loop": false, "source": "Pixabay (placeholder)" }
+  },
+  "sfx": {
+    "honk": { "src": "/audio/sfx/honk.mp3", "source": "Pixabay (placeholder)" },
+    "ding": { "src": "/audio/sfx/ding.mp3", "source": "Pixabay (placeholder)" },
+    "swoosh": { "src": "/audio/sfx/swoosh.mp3", "source": "Pixabay (placeholder)" },
+    "drumroll": { "src": "/audio/sfx/drumroll.mp3", "source": "Pixabay (placeholder)" },
+    "tick": { "src": "/audio/sfx/tick.mp3", "source": "Pixabay (placeholder)" },
+    "claim": { "src": "/audio/sfx/claim.mp3", "source": "Pixabay (placeholder)" },
+    "buzzerPress": { "src": "/audio/sfx/buzzer-press.mp3", "source": "Pixabay (placeholder)" }
+  }
+}

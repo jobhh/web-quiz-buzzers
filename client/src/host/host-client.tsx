@@ -8,6 +8,9 @@ import { ScreenRouter } from "./screen-router";
 import { HostControls } from "./components/host-controls";
 import { ANSWER_BUTTON_TO_CHOICE } from "@shared/buzz-constants";
 import type { Player } from "@shared/game-state";
+import { useAudio } from "@client/audio/use-audio";
+import { usePhaseAudio } from "@client/audio/use-phase-audio";
+import { audioManager } from "@client/audio/audio-manager";
 
 interface ServerInfo {
   lanIps: string[];
@@ -25,12 +28,22 @@ export function HostClient() {
   const [skippedSetup, setSkippedSetup] = useState(false);
   const [createInFlight, setCreateInFlight] = useState(false);
 
-  // Boot ws + restore previously-attached dongles.
+  useAudio();
+  usePhaseAudio(state);
+
+  // Boot ws + restore previously-attached dongles + arm audio unlock on first click.
   useEffect(() => {
     gameSession.start();
     if (buzzManager.isSupported()) {
       buzzManager.restoreAttached().catch(() => {});
     }
+    const unlock = () => audioManager.unlock();
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
   }, []);
 
   // Fetch server info (LAN IP + packs) once.
