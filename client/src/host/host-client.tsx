@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { gameSession } from "@client/state/game-session";
 import { useGameState } from "@client/state/game-store";
-import { useBuzzManagerStatus } from "@client/hooks/use-buzz-events";
+import { useBuzzManagerStatus, useBuzzEvent } from "@client/hooks/use-buzz-events";
 import { buzzManager } from "@client/hid/buzz-manager";
 import { SetupScreen } from "./screens/setup-screen";
-import { LobbyScreen } from "./screens/lobby-screen";
+import { ScreenRouter } from "./screen-router";
+import { HostControls } from "./components/host-controls";
+import { ANSWER_BUTTON_TO_CHOICE } from "@shared/buzz-constants";
+import type { Player } from "@shared/game-state";
 
 interface ServerInfo {
   lanIps: string[];
@@ -64,5 +67,70 @@ export function HostClient() {
   const inSetup = !skippedSetup && dongleCount === 0;
   if (inSetup) return <SetupScreen onContinue={() => setSkippedSetup(true)} />;
 
-  return <LobbyScreen state={state} serverInfo={serverInfo} />;
+  return (
+    <>
+      <ScreenRouter state={state} serverInfo={serverInfo} />
+      <HostControls state={state} />
+      <BuzzGameInputs />
+    </>
+  );
+}
+
+// Translates buzz events from physical controllers into game actions
+// (BUZZ during BUZZ_OPEN, ANSWER during ANSWER_LOCK or speed BUZZ_OPEN, WAGER
+// preset during FINAL_WAGER). Lookup runs on every event so it always reads
+// the freshest state without a stale closure.
+function BuzzGameInputs() {
+  useBuzzEvent((p, kind) => {
+    if (kind !== "press") return;
+    const state = useGameStateSnapshot();
+    if (!state) return;
+    // Find the player owning this (dongle, controller) pair.
+    const me: Player | undefined = state.players.find(
+      (pl) =>
+        pl.buzzSlot?.dongleId === p.dongleId &&
+        pl.buzzSlot?.controllerIndex === p.controllerIndex,
+    );
+    if (!me) return;
+
+    // BUZZ button (red) during BUZZ_OPEN of R1/R3 → BUZZ message.
+    if (
+      p.buttonIndex === 0 &&
+      state.phase === "BUZZ_OPEN" &&
+      (state.currentRound === 1 || state.currentRound === 3)
+    ) {
+      gameSession.send({ type: "BUZZ" });
+      return;
+    }
+    // Answer buttons (Y/G/O/B) during ANSWER_LOCK (R1/R3 buzzer's pick),
+    // BUZZ_OPEN (R2 speed), or final ANSWER_LOCK.
+    const choice = ANSWER_BUTTON_TO_CHOICE[p.buttonIndex];
+    if (choice == null) return;
+    const isFinalAnswer =
+      state.phase === "ANSWER_LOCK" && state.currentRound === 4;
+    const isBuzzerAnswer =
+      state.phase === "ANSWER_LOCK" &&
+      (state.currentRound === 1 || state.currentRound === 3) &&
+      state.buzzedPlayerId === me.id;
+    const isSpeedAnswer =
+      state.phase === "BUZZ_OPEN" && state.currentRound === 2;
+    if (isFinalAnswer || isBuzzerAnswer || isSpeedAnswer) {
+      gameSession.send({ type: "ANSWER", payload: { choice: choice as 0 | 1 | 2 | 3 } });
+      return;
+    }
+    // Wager presets in FINAL_WAGER: Y=25%, G=50%, O=75%, B=100%.
+    if (state.phase === "FINAL_WAGER") {
+      const pct = [0.25, 0.5, 0.75, 1.0][choice] ?? 0;
+      const amount = Math.floor(me.score * pct);
+      gameSession.send({ type: "WAGER", payload: { amount } });
+    }
+  });
+  return null;
+}
+
+// Snapshot accessor without re-rendering the host on every state change.
+import { getGameState } from "@client/state/game-store";
+function useGameStateSnapshot() {
+  // Always reads the latest store value at call time.
+  return getGameState();
 }
