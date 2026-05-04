@@ -6,7 +6,7 @@ import { buzzManager } from "@client/hid/buzz-manager";
 import { SetupScreen } from "./screens/setup-screen";
 import { ScreenRouter } from "./screen-router";
 import { HostControls } from "./components/host-controls";
-import { ANSWER_BUTTON_TO_CHOICE } from "@shared/buzz-constants";
+import { buttonToChoice } from "@shared/buzz-constants";
 import type { Player } from "@shared/game-state";
 import { useAudio } from "@client/audio/use-audio";
 import { usePhaseAudio } from "@client/audio/use-phase-audio";
@@ -117,8 +117,8 @@ function BuzzGameInputs() {
     }
     // Answer buttons (Y/G/O/B) during ANSWER_LOCK (R1/R3 buzzer's pick),
     // BUZZ_OPEN (R2 speed), or final ANSWER_LOCK.
-    const choice = ANSWER_BUTTON_TO_CHOICE[p.buttonIndex];
-    if (choice == null) return;
+    const choice = buttonToChoice(p.buttonIndex);
+    if (choice === undefined) return;
     const isFinalAnswer =
       state.phase === "ANSWER_LOCK" && state.currentRound === 4;
     const isBuzzerAnswer =
@@ -128,7 +128,7 @@ function BuzzGameInputs() {
     const isSpeedAnswer =
       state.phase === "BUZZ_OPEN" && state.currentRound === 2;
     if (isFinalAnswer || isBuzzerAnswer || isSpeedAnswer) {
-      gameSession.send({ type: "ANSWER", payload: { choice: choice as 0 | 1 | 2 | 3 } });
+      gameSession.send({ type: "ANSWER", payload: { choice } });
       return;
     }
     // Wager presets in FINAL_WAGER: Y=25%, G=50%, O=75%, B=100%.

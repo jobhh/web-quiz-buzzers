@@ -78,8 +78,12 @@ export function LobbyScreen({ state, serverInfo }: Props) {
   const phonePlayers = state.players.filter((p) => p.deviceType === "phone");
   const buzzPlayers = state.players.filter((p) => p.deviceType === "buzz");
   const lanIp = serverInfo?.lanIps[0];
+  // Use the same port the host loaded the page on (Vite 5173 in dev, Bun 3000
+  // in prod, or whatever PORT env was passed). Phones reach Vite via the same
+  // port; Vite's WS proxy handles the rest.
+  const portSuffix = location.port ? `:${location.port}` : "";
   const joinUrl = lanIp
-    ? `http://${lanIp}:3000/play?room=${state.roomCode}`
+    ? `${location.protocol}//${lanIp}${portSuffix}/play?room=${state.roomCode}`
     : `${location.origin}/play?room=${state.roomCode}`;
 
   const canStart = state.players.length >= 1 && selectedPack !== null;

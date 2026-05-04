@@ -6,6 +6,7 @@ import { reduce, initialState, type Action } from "./reducer";
 import type { SocketData } from "./socket-data";
 import { packRegistry } from "./pack-registry";
 import { TimerManager } from "./timer-manager";
+import { projectStateForBroadcast } from "./state-projection";
 import {
   advanceFromIntroOrReveal,
   enterFinalWager,
@@ -149,9 +150,11 @@ export class Room {
   }
 
   broadcast(): void {
+    // Apply privacy projection so per-player wager amounts / speed-round picks
+    // / final-wager question text never reach other clients via STATE_UPDATE.
     const msg: ServerMessage = {
       type: "STATE_UPDATE",
-      payload: { state: this.state },
+      payload: { state: projectStateForBroadcast(this.state) },
     };
     const json = JSON.stringify(msg);
     for (const ws of this.sockets.values()) {

@@ -39,7 +39,8 @@ export function FinalWagerScreen({ state }: Props) {
               <p className="font-bold text-sm truncate w-full text-center">{p.name}</p>
               <p className="text-xs opacity-70">Score: {p.score}</p>
               <p className={`text-lg font-black ${locked ? "text-green-300" : "opacity-50"}`}>
-                {locked ? `Wager: ${w}` : "thinking…"}
+                {/* Wager amount stays hidden until reveal to keep bets private. */}
+                {locked ? "Locked ✓" : "thinking…"}
               </p>
             </li>
           );

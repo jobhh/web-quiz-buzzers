@@ -57,7 +57,34 @@ export function reduce(state: GameState, action: Action): GameState {
       if (action.playerId === state.hostId && players.length > 0) {
         hostId = players[0].id;
       }
-      return { ...state, players, hostId };
+      // Clear all dangling references to the leaving player so the
+      // round-engine and screens don't try to render or steal-from a ghost.
+      const buzzedPlayerId =
+        state.buzzedPlayerId === action.playerId ? undefined : state.buzzedPlayerId;
+      const lockedOutPlayerIds = state.lockedOutPlayerIds.filter(
+        (id) => id !== action.playerId,
+      );
+      let speedRoundAnswers = state.speedRoundAnswers;
+      if (speedRoundAnswers && action.playerId in speedRoundAnswers) {
+        const next = { ...speedRoundAnswers };
+        delete next[action.playerId];
+        speedRoundAnswers = next;
+      }
+      let wagers = state.wagers;
+      if (wagers && action.playerId in wagers) {
+        const next = { ...wagers };
+        delete next[action.playerId];
+        wagers = next;
+      }
+      return {
+        ...state,
+        players,
+        hostId,
+        buzzedPlayerId,
+        lockedOutPlayerIds,
+        speedRoundAnswers,
+        wagers,
+      };
     }
 
     case "START_GAME": {

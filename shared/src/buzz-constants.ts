@@ -23,11 +23,13 @@ export const BUTTON_INDEX = {
   blue: 4,
 } as const;
 
-// Maps the 4 colored answer buttons to multiple-choice answer indices A..D.
-// (Yellow=A, Green=B, Orange=C, Blue=D — matches PSEye/Buzz-game conventions.)
-export const ANSWER_BUTTON_TO_CHOICE: Record<number, number> = {
-  1: 0, // yellow → A
-  2: 1, // green  → B
-  3: 2, // orange → C
-  4: 3, // blue   → D
-};
+export type AnswerChoice = 0 | 1 | 2 | 3;
+
+// Maps the 4 colored answer buttons (1..4 = Y/G/O/B) to multiple-choice
+// answer indices A..D. Button 0 (the big red BUZZ) is intentionally not
+// mapped — buzzToChoice returns undefined for it so callers null-check.
+const ANSWER_MAP = { 1: 0, 2: 1, 3: 2, 4: 3 } as const;
+
+export function buttonToChoice(buttonIndex: number): AnswerChoice | undefined {
+  return (ANSWER_MAP as Record<number, AnswerChoice>)[buttonIndex];
+}

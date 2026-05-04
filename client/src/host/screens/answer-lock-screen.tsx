@@ -13,7 +13,20 @@ export function AnswerLockScreen({ state }: Props) {
   if (isFinal) return <FinalAnswerLock state={state} />;
 
   const buzzer = state.players.find((p) => p.id === state.buzzedPlayerId);
-  if (!buzzer) return null;
+  if (!buzzer) {
+    // Buzzer left mid-question — show a friendly stuck-state so the host
+    // knows to advance via the NEXT button.
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-center px-6">
+        <div>
+          <h1 className="text-3xl font-black text-pink-400 mb-2">Buzzer left</h1>
+          <p className="text-cyan-300 opacity-80">
+            Tap <span className="font-bold">Next</span> to skip this question.
+          </p>
+        </div>
+      </div>
+    );
+  }
   const isSteal = state.lockedOutPlayerIds.length > 0;
   const totalMs = isSteal ? STEAL_ANSWER_WINDOW_MS : BUZZ_ANSWER_WINDOW_MS;
 
