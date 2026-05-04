@@ -52,7 +52,14 @@ function PhaseScreen({ state, me }: { state: ReturnType<typeof useGameState> & o
     case "WINNER":
       return <WaitingScreen state={state} />;
     case "BUZZ_OPEN":
-      return <BuzzScreen state={state} me={me} />;
+      // R2 (speed round) has no buzz step — players tap an answer directly.
+      // R1/R3 use the big-red BUZZ button; the buzzer then sees AnswerScreen
+      // when the phase moves to ANSWER_LOCK.
+      return state.currentRound === 2 ? (
+        <AnswerScreen state={state} me={me} />
+      ) : (
+        <BuzzScreen state={state} me={me} />
+      );
     case "ANSWER_LOCK":
       return isBuzzer ? (
         <AnswerScreen state={state} me={me} />
