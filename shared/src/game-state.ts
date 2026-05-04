@@ -1,9 +1,14 @@
 // Shared between server (authoritative writer) and client (read-only renderer).
 
+// Note: a separate "QUESTION_REVEAL" phase used to sit between ROUND_INTRO
+// and BUZZ_OPEN, but it caused two problems: phones rendered the buzz UI
+// during it (since BUZZ_OPEN was visually identical) and the host had to
+// click an extra "Open Buzzers" button. The question text + answer cards
+// now stagger in client-side during BUZZ_OPEN itself — buzzes are accepted
+// from the moment the screen mounts.
 export type GamePhase =
   | "LOBBY"
   | "ROUND_INTRO"
-  | "QUESTION_REVEAL"
   | "BUZZ_OPEN"
   | "ANSWER_LOCK"
   | "REVEAL"

@@ -60,9 +60,10 @@ export function advanceFromIntroOrReveal(
   state: GameState,
   rounds: RoundQuestions,
 ): EngineResult {
-  // ROUND_INTRO → first question of round
+  // ROUND_INTRO → first question of round (skip the old QUESTION_REVEAL gate;
+  // BUZZ_OPEN now carries both the question reveal animation and the buzz race).
   if (state.phase === "ROUND_INTRO") {
-    return enterQuestionReveal(state, rounds, /* questionIndex */ 0);
+    return enterQuestionAndOpen(state, rounds, /* questionIndex */ 0);
   }
   // SCOREBOARD → next round intro
   if (state.phase === "SCOREBOARD") {
@@ -93,7 +94,7 @@ export function advanceFromIntroOrReveal(
     const nextIndex = state.questionIndex + 1;
     const list = listForRound(rounds, state.currentRound);
     if (nextIndex < list.length) {
-      return enterQuestionReveal(state, rounds, nextIndex);
+      return enterQuestionAndOpen(state, rounds, nextIndex);
     }
     // End of this round. Final → WINNER. Otherwise → SCOREBOARD.
     if (state.currentRound === 4) {
@@ -104,11 +105,7 @@ export function advanceFromIntroOrReveal(
       clear: ALL_TIMERS,
     };
   }
-  // From QUESTION_REVEAL, host clicking next opens the buzz window.
-  if (state.phase === "QUESTION_REVEAL") {
-    return enterBuzzOpen(state);
-  }
-  // From BUZZ_OPEN with no buzzes, host can also force a reveal → no scoring.
+  // From BUZZ_OPEN with no buzzes, host can force a reveal → no scoring.
   if (state.phase === "BUZZ_OPEN") {
     return enterReveal(state, rounds, null, null);
   }
@@ -269,7 +266,10 @@ function toPublic(q: Question): QuestionPublic {
   };
 }
 
-function enterQuestionReveal(
+// Populates the next question AND opens the buzz window in a single phase.
+// The host screen handles "reveal" animation entirely client-side via
+// staggered Framer Motion entrances; meanwhile buzzes are immediately valid.
+function enterQuestionAndOpen(
   state: GameState,
   rounds: RoundQuestions,
   questionIndex: number,
@@ -286,45 +286,26 @@ function enterQuestionReveal(
       clear: ALL_TIMERS,
     };
   }
-  return {
-    state: {
-      ...state,
-      phase: "QUESTION_REVEAL",
-      questionIndex,
-      currentQuestion: toPublic(q),
-      buzzedPlayerId: undefined,
-      buzzWindowEndsAt: undefined,
-      lockedOutPlayerIds: [],
-      speedRoundAnswers: undefined,
-      lastReveal: undefined,
-    },
-    clear: ALL_TIMERS,
-  };
-}
 
-function enterBuzzOpen(state: GameState): EngineResult {
-  // R2 has its own answer window; classic rounds wait for first buzz.
-  if (state.currentRound === 2) {
-    return {
-      state: {
-        ...state,
-        phase: "BUZZ_OPEN",
-        buzzWindowEndsAt: Date.now() + R2_WINDOW_MS,
-      },
-      schedule: { name: "R2_WINDOW", delayMs: R2_WINDOW_MS, event: "R2_WINDOW" },
-    };
-  }
+  const isSpeed = state.currentRound === 2;
+  const windowMs = isSpeed ? R2_WINDOW_MS : BUZZ_OPEN_IDLE_MS;
+  const timerName = isSpeed ? "R2_WINDOW" : "BUZZ_OPEN_IDLE";
+  const timerEvent = timerName;
+
   return {
     state: {
       ...state,
       phase: "BUZZ_OPEN",
-      buzzWindowEndsAt: Date.now() + BUZZ_OPEN_IDLE_MS,
+      questionIndex,
+      currentQuestion: toPublic(q),
+      buzzedPlayerId: undefined,
+      lockedOutPlayerIds: [],
+      speedRoundAnswers: undefined,
+      lastReveal: undefined,
+      buzzWindowEndsAt: Date.now() + windowMs,
     },
-    schedule: {
-      name: "BUZZ_OPEN_IDLE",
-      delayMs: BUZZ_OPEN_IDLE_MS,
-      event: "BUZZ_OPEN_IDLE",
-    },
+    clear: ALL_TIMERS,
+    schedule: { name: timerName, delayMs: windowMs, event: timerEvent },
   };
 }
 

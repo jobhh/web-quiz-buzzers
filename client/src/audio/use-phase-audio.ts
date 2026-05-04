@@ -41,8 +41,11 @@ function musicForPhase(state: GameState): MusicTrack | null {
 
 function sfxForPhase(state: GameState, prevPhase: string | undefined): SfxName | null {
   switch (state.phase) {
-    case "QUESTION_REVEAL":
-      return "swoosh";
+    case "BUZZ_OPEN":
+      // Question reveal animation entrance — only on the first BUZZ_OPEN of
+      // each question (i.e. coming from ROUND_INTRO or REVEAL, not from a
+      // failed-answer steal re-open).
+      return prevPhase === "ROUND_INTRO" || prevPhase === "REVEAL" ? "swoosh" : null;
     case "REVEAL": {
       const reveal = state.lastReveal;
       if (!reveal) return null;

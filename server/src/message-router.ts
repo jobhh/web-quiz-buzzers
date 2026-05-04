@@ -28,6 +28,14 @@ export function handleClientMessage(
       const room = rooms.create(playerId);
       ws.data.playerId = playerId;
       ws.data.roomCode = room.state.roomCode;
+      // Send the ack BEFORE the dispatched JOIN broadcasts STATE_UPDATE so
+      // the client's session-stored (roomCode, playerId) is set before the
+      // first state arrives — otherwise the lobby render uses null stored
+      // and stays on the join screen until the next render tick.
+      send(ws, {
+        type: "ROOM_CREATED",
+        payload: { roomCode: room.state.roomCode, playerId },
+      });
       room.attachSocket(playerId, ws);
       room.dispatch({
         type: "JOIN_ROOM",
@@ -37,10 +45,6 @@ export function handleClientMessage(
           playerName: msg.payload.hostName,
           deviceType: "phone",
         },
-      });
-      send(ws, {
-        type: "ROOM_CREATED",
-        payload: { roomCode: room.state.roomCode, playerId },
       });
       return;
     }
@@ -70,12 +74,13 @@ export function handleClientMessage(
       const playerId = randomUUID();
       ws.data.playerId = playerId;
       ws.data.roomCode = room.state.roomCode;
-      room.attachSocket(playerId, ws);
-      room.dispatch({ type: "JOIN_ROOM", playerId, payload: msg.payload });
+      // Ack first (see CREATE_ROOM rationale).
       send(ws, {
         type: "JOIN_ACK",
         payload: { roomCode: room.state.roomCode, playerId },
       });
+      room.attachSocket(playerId, ws);
+      room.dispatch({ type: "JOIN_ROOM", playerId, payload: msg.payload });
       return;
     }
 
@@ -94,11 +99,12 @@ export function handleClientMessage(
       }
       ws.data.playerId = player.id;
       ws.data.roomCode = room.state.roomCode;
-      room.attachSocket(player.id, ws);
+      // Ack first (see CREATE_ROOM rationale).
       send(ws, {
         type: "JOIN_ACK",
         payload: { roomCode: room.state.roomCode, playerId: player.id },
       });
+      room.attachSocket(player.id, ws);
       room.broadcast();
       return;
     }

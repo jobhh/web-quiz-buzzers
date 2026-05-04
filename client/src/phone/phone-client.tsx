@@ -51,7 +51,6 @@ function PhaseScreen({ state, me }: { state: ReturnType<typeof useGameState> & o
     case "SCOREBOARD":
     case "WINNER":
       return <WaitingScreen state={state} />;
-    case "QUESTION_REVEAL":
     case "BUZZ_OPEN":
       return <BuzzScreen state={state} me={me} />;
     case "ANSWER_LOCK":

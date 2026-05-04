@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { GameState } from "@shared/game-state";
 import { LobbyScreen } from "./screens/lobby-screen";
 import { RoundIntroScreen } from "./screens/round-intro-screen";
-import { QuestionRevealScreen } from "./screens/question-reveal-screen";
 import { BuzzInScreen } from "./screens/buzz-in-screen";
 import { AnswerLockScreen } from "./screens/answer-lock-screen";
 import { RevealScreen } from "./screens/reveal-screen";
@@ -48,8 +47,6 @@ function renderScreen(state: GameState) {
   switch (state.phase) {
     case "ROUND_INTRO":
       return <RoundIntroScreen state={state} />;
-    case "QUESTION_REVEAL":
-      return <QuestionRevealScreen state={state} />;
     case "BUZZ_OPEN":
       return <BuzzInScreen state={state} />;
     case "ANSWER_LOCK":

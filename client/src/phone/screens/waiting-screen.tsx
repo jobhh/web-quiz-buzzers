@@ -37,8 +37,6 @@ function phaseTitle(phase: GameState["phase"]): string {
       return "Waiting for Host";
     case "ROUND_INTRO":
       return "Get Ready";
-    case "QUESTION_REVEAL":
-      return "Question Coming";
     case "REVEAL":
       return "Answer";
     case "SCOREBOARD":
@@ -58,8 +56,6 @@ function defaultMessage(state: GameState): string {
       return "The host will start the game soon.";
     case "ROUND_INTRO":
       return `Round ${state.currentRound}!`;
-    case "QUESTION_REVEAL":
-      return "Read the question on the big screen.";
     case "ANSWER_LOCK":
       return "Watch the big screen — someone is answering.";
     case "REVEAL":

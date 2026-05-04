@@ -27,11 +27,17 @@ export function HostControls({ state }: Props) {
 function nextLabel(state: GameState): string | null {
   switch (state.phase) {
     case "ROUND_INTRO":
-      return "Show Question";
-    case "QUESTION_REVEAL":
-      return state.currentRound === 2 ? "Open Speed Round" : "Open Buzzers";
+      return state.currentRound === 2
+        ? "Start Speed Round"
+        : state.currentRound === 4
+        ? "Begin Final"
+        : "Show Question";
     case "BUZZ_OPEN":
-      return state.currentRound === 1 || state.currentRound === 3 ? "Skip Question" : null;
+      // Classic rounds (R1/R3): host can skip if nobody buzzes.
+      // R2 (speed) ends on its timer; no manual skip exposed.
+      return state.currentRound === 1 || state.currentRound === 3
+        ? "Skip Question"
+        : null;
     case "REVEAL":
       return "Continue";
     case "SCOREBOARD":
