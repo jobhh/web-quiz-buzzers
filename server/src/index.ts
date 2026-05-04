@@ -24,21 +24,41 @@ const DIST_DIR = "client/dist";
 
 rooms.startGcLoop();
 
-const server = Bun.serve({
-  port: PORT,
-  hostname: "0.0.0.0",
-  fetch(req, server) {
-    const url = new URL(req.url);
-    if (url.pathname === "/ws") {
-      // Initialize per-socket data; the message router populates playerId/roomCode on join.
-      if (server.upgrade(req, { data: emptySocketData() })) return;
-      return new Response("WebSocket upgrade failed", { status: 400 });
-    }
-    if (url.pathname === "/api/server-info") return handleApiServerInfo();
-    return handleHttp(url);
-  },
-  websocket: websocketHandler,
-});
+let server;
+try {
+  server = Bun.serve({
+    port: PORT,
+    hostname: "0.0.0.0",
+    fetch(req, server) {
+      const url = new URL(req.url);
+      if (url.pathname === "/ws") {
+        // Initialize per-socket data; the message router populates playerId/roomCode on join.
+        if (server.upgrade(req, { data: emptySocketData() })) return;
+        return new Response("WebSocket upgrade failed", { status: 400 });
+      }
+      if (url.pathname === "/api/server-info") return handleApiServerInfo();
+      return handleHttp(url);
+    },
+    websocket: websocketHandler,
+  });
+} catch (err) {
+  // Loud, actionable EADDRINUSE — usually a stale Buzz Quiz process from a
+  // previous `bun run dev` that didn't clean up. Without this guard, bun
+  // --watch silently fails to bind and clients quietly hit the orphan.
+  if ((err as NodeJS.ErrnoException)?.code === "EADDRINUSE") {
+    console.error("");
+    console.error(`  ✗ Port ${PORT} is already in use.`);
+    console.error(`    Likely a stale Buzz Quiz server from a previous run.`);
+    console.error(`    Find the offender:`);
+    console.error(`      ss -tlnp | grep ':${PORT}\\b'`);
+    console.error(`      lsof -iTCP:${PORT} -sTCP:LISTEN  # macOS / *nix alternative`);
+    console.error(`    Kill it:`);
+    console.error(`      kill <pid>`);
+    console.error("");
+    process.exit(1);
+  }
+  throw err;
+}
 
 logBootInfo(server.port ?? PORT);
 
