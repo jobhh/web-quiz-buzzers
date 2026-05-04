@@ -1,4 +1,5 @@
 import { Howl, Howler } from "howler";
+import { playSynthesizedSfx } from "./synthesized-sfx";
 
 export type MusicTrack = "lobby" | "gameplay" | "tension" | "win";
 export type SfxName =
@@ -24,12 +25,19 @@ interface Manifest {
   sfx: Record<SfxName, SfxEntry>;
 }
 
-// Singleton AudioManager. Resilient to missing files (logs warning, no-ops).
+// Singleton AudioManager. Resilient to missing files:
+//   • Missing manifest → no audio.
+//   • Missing music file → silent (warning logged once).
+//   • Missing SFX file → falls back to procedurally-synthesized SFX so the
+//     game has *some* feedback out-of-the-box without the host downloading
+//     and curating MP3s.
 // Designed to be unlock()ed on first user gesture to satisfy autoplay policies.
 class AudioManager {
   private manifest: Manifest | null = null;
   private musicHowls = new Map<MusicTrack, Howl>();
   private sfxHowls = new Map<SfxName, Howl>();
+  // SFX names whose MP3 file failed to load; we synthesize them instead.
+  private synthesizedSfx = new Set<SfxName>();
   private currentMusic: { track: MusicTrack; howl: Howl; id: number } | null = null;
   private musicVolume = 0.6;
   private sfxVolume = 0.9;
@@ -46,12 +54,9 @@ class AudioManager {
     }
   }
 
-  // Plays a silent buffer to unlock the audio context on first interaction.
   unlock(): void {
     if (this.unlocked) return;
     this.unlocked = true;
-    // Howler's `safari` lock is auto-handled, but creating a Howl in a
-    // user-gesture context is enough to satisfy modern policies.
     void Howler.ctx?.resume?.();
   }
 
@@ -71,13 +76,12 @@ class AudioManager {
     const fadeMs = opts.fadeMs ?? 800;
     const next = this.musicHowls.get(track) ?? this.createMusic(track);
     if (!next) return;
-    // Fade out any current.
     if (this.currentMusic && this.currentMusic.track !== track) {
       const { howl: prev, id: prevId } = this.currentMusic;
       prev.fade(this.musicVolume, 0, fadeMs, prevId);
       setTimeout(() => prev.stop(prevId), fadeMs + 50);
     } else if (this.currentMusic && this.currentMusic.track === track) {
-      return; // already playing this track
+      return;
     }
     const id = next.play();
     next.volume(0, id);
@@ -94,9 +98,21 @@ class AudioManager {
   }
 
   playSfx(name: SfxName): void {
-    if (!this.manifest) return;
+    // If we already know the file is missing, go straight to synthesis.
+    if (this.synthesizedSfx.has(name)) {
+      playSynthesizedSfx(name, this.sfxVolume);
+      return;
+    }
+    if (!this.manifest) {
+      // No manifest at all → use synthesis as a last resort.
+      playSynthesizedSfx(name, this.sfxVolume);
+      return;
+    }
     const howl = this.sfxHowls.get(name) ?? this.createSfx(name);
-    if (!howl) return;
+    if (!howl) {
+      playSynthesizedSfx(name, this.sfxVolume);
+      return;
+    }
     howl.volume(this.sfxVolume);
     howl.play();
   }
@@ -108,7 +124,9 @@ class AudioManager {
       src: [entry.src],
       loop: entry.loop,
       volume: this.musicVolume,
-      onloaderror: (_id, err) => console.warn(`[audio] music ${track} load failed:`, err),
+      onloaderror: (_id, err) => {
+        console.warn(`[audio] music ${track} load failed:`, err);
+      },
     });
     this.musicHowls.set(track, howl);
     return howl;
@@ -120,7 +138,14 @@ class AudioManager {
     const howl = new Howl({
       src: [entry.src],
       volume: this.sfxVolume,
-      onloaderror: (_id, err) => console.warn(`[audio] sfx ${name} load failed:`, err),
+      onloaderror: (_id, err) => {
+        // File missing or invalid → mark this SFX as synth-only forever.
+        console.warn(`[audio] sfx ${name} load failed; using synthesized fallback`, err);
+        this.synthesizedSfx.add(name);
+        // Fire the synthesized version *now* so the trigger that just
+        // happened isn't silent.
+        playSynthesizedSfx(name, this.sfxVolume);
+      },
     });
     this.sfxHowls.set(name, howl);
     return howl;

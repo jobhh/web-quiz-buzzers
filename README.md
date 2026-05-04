@@ -77,12 +77,17 @@ Drop a JSON file into `packs/`. Schema:
 
 See [`docs/pack-authoring.md`](docs/pack-authoring.md) for more.
 
-## Adding Audio
+## Audio
 
-Audio is optional — the system runs silently when files are missing. Drop MP3s
-into `public/audio/music/` and `public/audio/sfx/` per the layout in
-[`public/audio/CURATION.md`](public/audio/CURATION.md). Pixabay search terms
-included.
+**SFX work out of the box** — every sound effect (buzzer honk, ding, swoosh,
+drumroll, tick, claim, button press) is synthesized in-browser via the Web
+Audio API as a fallback when the matching MP3 isn't present. The game has
+full audio feedback the moment you launch.
+
+To upgrade with real samples, drop MP3s into `public/audio/sfx/` (overrides
+the synth) and `public/audio/music/` (no synth fallback for music tracks).
+See [`public/audio/CURATION.md`](public/audio/CURATION.md) for the expected
+filenames + Pixabay search links.
 
 ## Settings
 
