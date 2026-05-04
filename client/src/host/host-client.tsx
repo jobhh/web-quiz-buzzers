@@ -46,28 +46,61 @@ export function HostClient() {
     };
   }, []);
 
-  // Fetch server info (LAN IP + packs) once.
+  // Fetch server info (LAN IP + packs) once. Don't block the lobby on this —
+  // if the fetch fails (e.g. dev mode without /api proxy), fall back to an
+  // empty default so the room still renders.
   useEffect(() => {
+    let cancelled = false;
+    const fallback: ServerInfo = { lanIps: [], packs: [] };
     fetch("/api/server-info")
-      .then((r) => r.json())
-      .then((info: ServerInfo) => setServerInfo(info))
-      .catch((e) => console.warn("[host] server-info fetch failed", e));
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const ct = r.headers.get("content-type") ?? "";
+        if (!ct.includes("application/json")) throw new Error(`bad content-type: ${ct}`);
+        return r.json() as Promise<ServerInfo>;
+      })
+      .then((info) => {
+        if (!cancelled) setServerInfo(info);
+      })
+      .catch((e) => {
+        console.warn("[host] server-info fetch failed; continuing with empty fallback", e);
+        if (!cancelled) setServerInfo(fallback);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Auto-create a room if we don't already have one and ws is up.
+  // Also retry if a stale stored session was just cleared by ROOM_NOT_FOUND
+  // or PLAYER_NOT_FOUND error (e.g. server restarted between page loads).
   useEffect(() => {
     if (state || createInFlight) return;
-    const onStatus = gameSession.onStatus((s) => {
-      if (s !== "connected") return;
-      // Avoid double-create if a stored session is reattaching.
-      if (gameSession.getStored()) return;
-      setCreateInFlight(true);
-      gameSession.send({ type: "CREATE_ROOM", payload: { hostName: "Host" } });
+    const tryCreate = (delay: number) => {
+      // Small delay so a pending RECONNECT can resolve first.
+      setTimeout(() => {
+        if (state || createInFlight) return;
+        if (gameSession.getStored()) return;
+        setCreateInFlight(true);
+        gameSession.send({ type: "CREATE_ROOM", payload: { hostName: "Host" } });
+      }, delay);
+    };
+    const offStatus = gameSession.onStatus((s) => {
+      if (s === "connected") tryCreate(150);
     });
-    return onStatus;
+    const offError = gameSession.onError((e) => {
+      // Stored session was just cleared on stale ROOM_NOT_FOUND/PLAYER_NOT_FOUND.
+      if (e.code === "ROOM_NOT_FOUND" || e.code === "PLAYER_NOT_FOUND") {
+        tryCreate(50);
+      }
+    });
+    return () => {
+      offStatus();
+      offError();
+    };
   }, [state, createInFlight]);
 
-  // While waiting for server info / room, show a minimal connecting screen.
+  // While waiting for state, show a minimal connecting screen.
   if (!state || !serverInfo) {
     return (
       <div className="min-h-screen bg-black text-cyan-300 flex items-center justify-center font-mono">
