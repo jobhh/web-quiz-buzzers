@@ -1,25 +1,24 @@
 import { gameSession } from "@client/state/game-session";
 import type { GameState } from "@shared/game-state";
+import { MagneticButton } from "@client/anim";
 
 interface Props {
   state: GameState;
 }
 
-// Bottom-right host advance button. Visible on phases where the host can
-// manually progress (or has nothing else to do). The button label tracks the
-// next phase so the host knows what comes next.
 export function HostControls({ state }: Props) {
   const label = nextLabel(state);
   if (!label) return null;
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <button
-        type="button"
+      <MagneticButton
         onClick={() => gameSession.send({ type: "NEXT_QUESTION" })}
-        className="px-5 py-3 bg-pink-500 hover:bg-pink-400 text-black font-black uppercase tracking-wider rounded shadow-lg shadow-pink-500/40"
+        strength={0.35}
+        className="relative px-6 py-3 bg-neon-pink hover:bg-pink-400 text-black font-display uppercase tracking-[0.25em] rounded shadow-neon overflow-hidden"
       >
-        {label} →
-      </button>
+        <span className="relative z-10">{label} →</span>
+        <span className="scan-sweep-bar animate-scan-sweep" />
+      </MagneticButton>
     </div>
   );
 }
@@ -33,8 +32,6 @@ function nextLabel(state: GameState): string | null {
         ? "Begin Final"
         : "Show Question";
     case "BUZZ_OPEN":
-      // Classic rounds (R1/R3): host can skip if nobody buzzes.
-      // R2 (speed) ends on its timer; no manual skip exposed.
       return state.currentRound === 1 || state.currentRound === 3
         ? "Skip Question"
         : null;

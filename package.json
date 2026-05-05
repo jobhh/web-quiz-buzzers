@@ -13,8 +13,10 @@
     "typecheck": "tsc -p tsconfig.server.json && tsc -p tsconfig.client.json"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.38.0",
+    "gsap": "^3.15.0",
     "howler": "^2.2.4",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",

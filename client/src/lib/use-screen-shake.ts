@@ -1,16 +1,24 @@
 import { useCallback } from "react";
 
-const CLASS = "animate-screen-shake";
+type ShakeIntensity = "soft" | "normal" | "hard";
 
-// Returns a `shake()` callable that adds the screen-shake animation class to
-// <body> for ~400ms. Idempotent — re-calling during a shake resets the timer.
+const DURATION_BY: Record<ShakeIntensity, number> = {
+  soft: 320,
+  normal: 580,
+  hard: 700,
+};
+
+// Returns a `shake(intensity?)` callable that triggers the body keyframe
+// shake. Honors document `reduce-motion` class — under reduced motion the
+// shake is brief and barely visible.
 export function useScreenShake() {
-  return useCallback(() => {
+  return useCallback((intensity: ShakeIntensity = "normal") => {
+    const reduced = document.documentElement.classList.contains("reduce-motion");
+    const dur = reduced ? 200 : DURATION_BY[intensity];
     const body = document.body;
-    body.classList.remove(CLASS);
-    // Force reflow so re-adding the class restarts the animation.
+    body.classList.remove("animate-screen-shake");
     void body.offsetWidth;
-    body.classList.add(CLASS);
-    setTimeout(() => body.classList.remove(CLASS), 420);
+    body.classList.add("animate-screen-shake");
+    setTimeout(() => body.classList.remove("animate-screen-shake"), dur + 20);
   }, []);
 }

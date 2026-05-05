@@ -7,7 +7,6 @@
     background-color: #0a0014;
     color: #00f5ff;
     font-family: "Space Grotesk", system-ui, sans-serif;
-    /* Subtle radial gradient adds depth to the dark bg without distracting. */
     background-image: radial-gradient(
       ellipse at 50% 0%,
       rgba(255, 0, 110, 0.08) 0%,
@@ -48,5 +47,112 @@
       transparent 1px,
       transparent 4px
     );
+  }
+
+  /* Pre-split SplitText fallback: ensure char wrappers don't break flow. */
+  .anim-char,
+  .anim-word {
+    display: inline-block;
+    will-change: transform, opacity, filter;
+  }
+
+  /* Chromatic split text — pure CSS variant used as a fallback. */
+  .text-chromatic {
+    text-shadow:
+      2px 0 0 rgba(255, 0, 110, 0.85),
+      -2px 0 0 rgba(0, 245, 255, 0.85),
+      0 0 18px rgba(255, 215, 0, 0.4);
+  }
+
+  /* Neon grid backdrop. Sizes the lines + tints them with theme accents. */
+  .bg-neon-grid {
+    background-size: 60px 60px;
+    background-position: 0 0;
+  }
+
+  /* Diagonal sweep highlight overlay. Place inside an `overflow-hidden`
+     container with absolute positioning. */
+  .scan-sweep-bar {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.0) 35%,
+      rgba(255, 255, 255, 0.55) 50%,
+      rgba(255, 255, 255, 0.0) 65%,
+      transparent 100%
+    );
+    mix-blend-mode: overlay;
+  }
+
+  /* Vignette for focus moments. */
+  .vignette::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.85) 100%);
+  }
+
+  /* Rotating conic golden rays for winner screen. */
+  .rays-gold-bg {
+    background: conic-gradient(
+      from 0deg,
+      rgba(255, 215, 0, 0) 0deg,
+      rgba(255, 215, 0, 0.22) 6deg,
+      rgba(255, 215, 0, 0) 12deg,
+      rgba(255, 215, 0, 0) 36deg,
+      rgba(255, 215, 0, 0.22) 42deg,
+      rgba(255, 215, 0, 0) 48deg,
+      rgba(255, 215, 0, 0) 72deg,
+      rgba(255, 215, 0, 0.22) 78deg,
+      rgba(255, 215, 0, 0) 84deg,
+      rgba(255, 215, 0, 0) 108deg,
+      rgba(255, 215, 0, 0.22) 114deg,
+      rgba(255, 215, 0, 0) 120deg
+    );
+  }
+
+  /* Pulsing glow ring (used for buzzer reveal, winner halo). */
+  .ring-pulse {
+    box-shadow:
+      0 0 0 0 rgba(255, 0, 110, 0.8),
+      0 0 40px rgba(255, 0, 110, 0.55),
+      0 0 80px rgba(255, 0, 110, 0.3);
+    animation: ring-throb 1.6s ease-in-out infinite;
+  }
+
+  @keyframes ring-throb {
+    0%, 100% {
+      box-shadow:
+        0 0 0 0 rgba(255, 0, 110, 0.6),
+        0 0 30px rgba(255, 0, 110, 0.4);
+    }
+    50% {
+      box-shadow:
+        0 0 0 18px rgba(255, 0, 110, 0.0),
+        0 0 60px rgba(255, 0, 110, 0.7);
+    }
+  }
+
+  /* Reduced motion: hard kill of decorative animation classes. */
+  .reduce-motion .animate-grid-pan,
+  .reduce-motion .animate-radial-breathe,
+  .reduce-motion .animate-ray-spin-slow,
+  .reduce-motion .animate-ray-spin-fast,
+  .reduce-motion .animate-bob,
+  .reduce-motion .animate-neon-flicker,
+  .reduce-motion .animate-chromatic-shake,
+  .reduce-motion .animate-scan-sweep,
+  .reduce-motion .animate-pulse-ring,
+  .reduce-motion .animate-rainbow-border,
+  .reduce-motion .animate-glow-pulse,
+  .reduce-motion .ring-pulse {
+    animation: none !important;
+  }
+  .reduce-motion .scan-sweep-bar {
+    display: none;
   }
 }

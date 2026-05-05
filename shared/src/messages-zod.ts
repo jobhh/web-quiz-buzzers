@@ -45,6 +45,7 @@ export const clientMessageSchema = z.discriminatedUnion("type", [
     payload: z.object({ amount: z.number().int().min(0) }),
   }),
   z.object({ type: z.literal("NEXT_QUESTION"), payload: emptyPayload }),
+  z.object({ type: z.literal("RESET_GAME"), payload: emptyPayload }),
   z.object({ type: z.literal("LEAVE"), payload: emptyPayload }),
 ]);
 

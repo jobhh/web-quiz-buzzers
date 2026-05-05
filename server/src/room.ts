@@ -70,6 +70,24 @@ export class Room {
     this.applyEngine(handleWager(this.state, playerId, amount));
   }
 
+  // Host action: RESET_GAME. Clears game state back to LOBBY but keeps players
+  // (scores zeroed) so a "Play Again" doesn't drop everyone's connection.
+  handleResetGame(playerId: string): void {
+    if (playerId !== this.state.hostId) return;
+    this.timers.clearAll();
+    this.roundQuestions = null;
+    this.state = {
+      roomCode: this.state.roomCode,
+      hostId: this.state.hostId,
+      phase: "LOBBY",
+      players: this.state.players.map((p) => ({ ...p, score: 0 })),
+      currentRound: 1,
+      questionIndex: 0,
+      lockedOutPlayerIds: [],
+    };
+    this.broadcast();
+  }
+
   // Host action: NEXT_QUESTION (advances ROUND_INTRO/QUESTION_REVEAL/REVEAL/SCOREBOARD/BUZZ_OPEN).
   // Also auto-promotes round 3 → round 4 (final) when SCOREBOARD advances.
   handleNextQuestion(playerId: string): void {

@@ -94,6 +94,10 @@ export function advanceFromIntroOrReveal(
     const nextIndex = state.questionIndex + 1;
     const list = listForRound(rounds, state.currentRound);
     if (nextIndex < list.length) {
+      // Final round: each question gets its own wager phase, not BUZZ_OPEN.
+      if (state.currentRound === 4) {
+        return enterFinalWager(state, rounds, nextIndex);
+      }
       return enterQuestionAndOpen(state, rounds, nextIndex);
     }
     // End of this round. Final → WINNER. Otherwise → SCOREBOARD.
@@ -467,9 +471,14 @@ function enterFinalQuestion(state: GameState): EngineResult {
   };
 }
 
-// FINAL_WAGER entry: invoked when transitioning into round 4 from SCOREBOARD or directly.
-export function enterFinalWager(state: GameState, rounds: RoundQuestions): EngineResult {
-  const q = rounds.final[0];
+// FINAL_WAGER entry. Used for both R3→R4 transition and per-question wagers
+// inside R4. Each final question gets a fresh wager round.
+export function enterFinalWager(
+  state: GameState,
+  rounds: RoundQuestions,
+  index: number = 0,
+): EngineResult {
+  const q = rounds.final[index];
   if (!q) {
     return { state: { ...state, phase: "WINNER" }, clear: ALL_TIMERS };
   }
@@ -478,7 +487,7 @@ export function enterFinalWager(state: GameState, rounds: RoundQuestions): Engin
       ...state,
       phase: "FINAL_WAGER",
       currentRound: 4,
-      questionIndex: 0,
+      questionIndex: index,
       currentQuestion: toPublic(q),
       wagers: {},
       speedRoundAnswers: {},

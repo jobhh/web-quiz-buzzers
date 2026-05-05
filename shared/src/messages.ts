@@ -20,6 +20,7 @@ export type ClientMessage =
   | { type: "ANSWER"; payload: { choice: 0 | 1 | 2 | 3 } }
   | { type: "WAGER"; payload: { amount: number } }
   | { type: "NEXT_QUESTION"; payload?: Record<string, never> }
+  | { type: "RESET_GAME"; payload?: Record<string, never> }
   | { type: "LEAVE"; payload?: Record<string, never> };
 
 // Server → Client.

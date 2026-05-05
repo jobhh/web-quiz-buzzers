@@ -1,20 +1,13 @@
-import { motion } from "framer-motion";
+import { CountUp } from "@client/anim";
 
 interface Props {
   score: number;
 }
 
-// Animated score pill. Number changes use a quick scale pop for emphasis.
 export function ScoreBadge({ score }: Props) {
   return (
-    <motion.span
-      key={score}
-      initial={{ scale: 1.4, opacity: 0.6 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className="inline-block px-3 py-0.5 rounded-full bg-yellow-300 text-black font-black text-sm tabular-nums"
-    >
-      {score}
-    </motion.span>
+    <span className="inline-block px-3 py-0.5 rounded-full bg-neon-gold text-black font-display text-sm tabular-nums shadow-neon-gold">
+      <CountUp value={score} duration={0.45} />
+    </span>
   );
 }

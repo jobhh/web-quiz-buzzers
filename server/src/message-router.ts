@@ -28,24 +28,17 @@ export function handleClientMessage(
       const room = rooms.create(playerId);
       ws.data.playerId = playerId;
       ws.data.roomCode = room.state.roomCode;
-      // Send the ack BEFORE the dispatched JOIN broadcasts STATE_UPDATE so
-      // the client's session-stored (roomCode, playerId) is set before the
-      // first state arrives — otherwise the lobby render uses null stored
-      // and stays on the join screen until the next render tick.
+      // Ack first so the client persists (roomCode, playerId) before the
+      // initial STATE_UPDATE arrives — see RECONNECT path for why ordering
+      // matters.
       send(ws, {
         type: "ROOM_CREATED",
         payload: { roomCode: room.state.roomCode, playerId },
       });
       room.attachSocket(playerId, ws);
-      room.dispatch({
-        type: "JOIN_ROOM",
-        playerId,
-        payload: {
-          roomCode: room.state.roomCode,
-          playerName: msg.payload.hostName,
-          deviceType: "phone",
-        },
-      });
+      // Host is identified by `state.hostId` and gets STATE_UPDATE broadcasts
+      // via its attached socket — but it does NOT occupy a player slot.
+      room.broadcast();
       return;
     }
 
@@ -90,21 +83,23 @@ export function handleClientMessage(
         sendError(ws, "ROOM_NOT_FOUND", "no such room");
         return;
       }
+      // Host doesn't appear in `players` but should still be allowed to
+      // re-attach by playerId === hostId.
+      const isHost = msg.payload.playerId === room.state.hostId;
       const player = room.state.players.find(
         (p) => p.id === msg.payload.playerId,
       );
-      if (!player) {
+      if (!player && !isHost) {
         sendError(ws, "PLAYER_NOT_FOUND", "no such player in this room");
         return;
       }
-      ws.data.playerId = player.id;
+      ws.data.playerId = msg.payload.playerId;
       ws.data.roomCode = room.state.roomCode;
-      // Ack first (see CREATE_ROOM rationale).
       send(ws, {
         type: "JOIN_ACK",
-        payload: { roomCode: room.state.roomCode, playerId: player.id },
+        payload: { roomCode: room.state.roomCode, playerId: msg.payload.playerId },
       });
-      room.attachSocket(player.id, ws);
+      room.attachSocket(msg.payload.playerId, ws);
       room.broadcast();
       return;
     }
@@ -134,7 +129,8 @@ export function handleClientMessage(
     case "BUZZ":
     case "ANSWER":
     case "WAGER":
-    case "NEXT_QUESTION": {
+    case "NEXT_QUESTION":
+    case "RESET_GAME": {
       if (!ws.data.playerId || !ws.data.roomCode) {
         sendError(ws, "NOT_IN_ROOM", "join a room first");
         return;
@@ -157,6 +153,9 @@ export function handleClientMessage(
           break;
         case "NEXT_QUESTION":
           room.handleNextQuestion(playerId);
+          break;
+        case "RESET_GAME":
+          room.handleResetGame(playerId);
           break;
         case "LEAVE": {
           const action = { ...msg, playerId } as Action;

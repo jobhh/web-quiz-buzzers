@@ -1,23 +1,25 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import gsap from "gsap";
 import type { Player } from "@shared/game-state";
 import type { ControllerSlot } from "@client/hid/buzz-types";
 import type { BuzzController } from "@client/hid/buzz-controller";
 import { AlphabetWheel } from "./alphabet-wheel";
+import { Shockwave } from "@client/anim/shockwave";
 
 type SlotMode = "unclaimed" | "naming" | "claimed";
 
 interface Props {
   dongle: BuzzController;
   controllerIndex: ControllerSlot;
-  player: Player | null; // matched buzz player or null
-  isNaming: boolean; // true when this slot is currently in name-entry
+  player: Player | null;
+  isNaming: boolean;
   onSubmitName: (name: string) => void;
   onCancelName: () => void;
 }
 
 const COLORS = ["bg-red-500", "bg-yellow-400", "bg-green-500", "bg-orange-500"];
 
-// Renders one of the 4 controllers on a dongle in 1 of 3 visual states.
 export function BuzzPadSlot({
   dongle,
   controllerIndex,
@@ -28,32 +30,59 @@ export function BuzzPadSlot({
 }: Props) {
   const mode: SlotMode = player ? "claimed" : isNaming ? "naming" : "unclaimed";
   const accent = COLORS[controllerIndex];
+  const lastModeRef = useRef<SlotMode>(mode);
+  const cardRef = useRef<HTMLDivElement | null>(null);
 
-  // Drive LED: claimed = on (subtle confirmation), naming = on (active),
-  // unclaimed = off.
   useEffect(() => {
     const on = mode !== "unclaimed";
     dongle.setLed(controllerIndex, on).catch(() => {});
   }, [dongle, controllerIndex, mode]);
 
+  useEffect(() => {
+    const prev = lastModeRef.current;
+    if (cardRef.current && prev !== "claimed" && mode === "claimed") {
+      gsap.fromTo(
+        cardRef.current,
+        { scale: 0.85, rotate: -3 },
+        {
+          scale: 1,
+          rotate: 0,
+          duration: 0.7,
+          ease: "elastic.out(1, 0.4)",
+          overwrite: "auto",
+        },
+      );
+    }
+    lastModeRef.current = mode;
+  }, [mode]);
+
   return (
     <div
-      className={`border-2 rounded p-3 ${
+      ref={cardRef}
+      className={`relative border-2 rounded p-3 transition-colors duration-300 overflow-visible ${
         mode === "claimed"
-          ? "border-cyan-400 bg-cyan-950/40"
+          ? "border-neon-cyan bg-cyan-950/40 shadow-neon-cyan"
           : mode === "naming"
-          ? "border-pink-400"
+          ? "border-neon-pink animate-rainbow-border"
           : "border-gray-700"
       }`}
     >
-      <div className="flex items-center gap-2 mb-2">
+      <Shockwave
+        active={mode === "claimed"}
+        color="#00f5ff"
+        size={120}
+        rings={3}
+      />
+      <div className="flex items-center gap-2 mb-2 relative z-10">
         <span className={`inline-block w-3 h-3 rounded-full ${accent}`} />
-        <span className="font-bold text-sm">
+        <span className="font-display text-sm tracking-wider">
           Slot {controllerIndex + 1}
         </span>
       </div>
       {mode === "unclaimed" && (
-        <p className="text-xs opacity-60">Press the big red button to claim</p>
+        <p className="text-xs opacity-60 relative z-10">
+          Press the big <span className="text-red-400 font-bold">RED</span> button to claim
+        </p>
       )}
       {mode === "naming" && (
         <AlphabetWheel
@@ -63,9 +92,20 @@ export function BuzzPadSlot({
           onCancel={onCancelName}
         />
       )}
-      {mode === "claimed" && player && (
-        <p className="text-lg font-black text-cyan-100">{player.name}</p>
-      )}
+      <AnimatePresence>
+        {mode === "claimed" && player && (
+          <motion.p
+            key={player.id}
+            initial={{ y: 12, opacity: 0, scale: 0.7 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 240, damping: 14 }}
+            className="text-lg font-display tracking-wider text-cyan-100 relative z-10 truncate"
+          >
+            {player.name}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

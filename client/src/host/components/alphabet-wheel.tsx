@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import gsap from "gsap";
 import { buzzManager } from "@client/hid/buzz-manager";
 import type { ButtonIndex, ControllerSlot } from "@client/hid/buzz-types";
 
@@ -19,6 +21,24 @@ export function AlphabetWheel({ dongleId, controllerIndex, onSubmit, onCancel }:
   const [name, setName] = useState("");
   const nameRef = useRef(name);
   nameRef.current = name;
+  const currentRef = useRef<HTMLSpanElement | null>(null);
+
+  useEffect(() => {
+    if (currentRef.current) {
+      gsap.fromTo(
+        currentRef.current,
+        { scale: 1.4, rotateY: -45, opacity: 0.4 },
+        {
+          scale: 1,
+          rotateY: 0,
+          opacity: 1,
+          duration: 0.35,
+          ease: "back.out(2)",
+          overwrite: "auto",
+        },
+      );
+    }
+  }, [letterIdx]);
 
   useEffect(() => {
     return buzzManager.on((p, kind) => {
@@ -28,22 +48,22 @@ export function AlphabetWheel({ dongleId, controllerIndex, onSubmit, onCancel }:
     });
     function handleButton(idx: ButtonIndex) {
       switch (idx) {
-        case 0: // RED = backspace, or cancel if name empty
+        case 0:
           if (nameRef.current.length === 0) onCancel();
           else setName((n) => n.slice(0, -1));
           return;
-        case 1: // YELLOW = prev letter
+        case 1:
           setLetterIdx((i) => (i - 1 + ALPHABET.length) % ALPHABET.length);
           return;
-        case 2: // GREEN = next letter
+        case 2:
           setLetterIdx((i) => (i + 1) % ALPHABET.length);
           return;
-        case 3: // ORANGE = add letter
+        case 3:
           if (nameRef.current.length < 20) {
             setName((n) => n + ALPHABET[letterIdx]);
           }
           return;
-        case 4: // BLUE = submit
+        case 4:
           if (nameRef.current.trim().length > 0) onSubmit(nameRef.current.trim());
           return;
       }
@@ -55,13 +75,32 @@ export function AlphabetWheel({ dongleId, controllerIndex, onSubmit, onCancel }:
   const next = ALPHABET[(letterIdx + 1) % ALPHABET.length];
 
   return (
-    <div className="border-2 border-pink-500 rounded p-3 text-center">
-      <div className="font-mono text-2xl mb-2 min-h-[2rem] tracking-widest">
-        <span className="text-cyan-100">{name || "_"}</span>
+    <div className="border-2 border-neon-pink rounded p-3 text-center bg-neon-dark/60 backdrop-blur-sm">
+      <div className="font-display text-2xl mb-2 min-h-[2rem] tracking-widest flex justify-center items-center gap-0.5">
+        <AnimatePresence mode="popLayout" initial={false}>
+          {(name || "_").split("").map((c, i) => (
+            <motion.span
+              key={`${i}-${c}`}
+              initial={{ y: -16, opacity: 0, scale: 0.6 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 16, opacity: 0, scale: 0.6 }}
+              transition={{ type: "spring", stiffness: 320, damping: 18 }}
+              className="inline-block text-cyan-100"
+            >
+              {c}
+            </motion.span>
+          ))}
+        </AnimatePresence>
       </div>
-      <div className="flex items-center justify-center gap-3 text-3xl font-bold">
+      <div
+        className="flex items-center justify-center gap-3 text-3xl font-display"
+        style={{ perspective: 600 }}
+      >
         <span className="opacity-30">{visualize(prev)}</span>
-        <span className="text-pink-400 text-5xl bg-pink-500/10 px-3 rounded">
+        <span
+          ref={currentRef}
+          className="text-neon-pink text-5xl bg-neon-pink/10 px-3 rounded text-glow-pink inline-block"
+        >
           {visualize(curr)}
         </span>
         <span className="opacity-30">{visualize(next)}</span>

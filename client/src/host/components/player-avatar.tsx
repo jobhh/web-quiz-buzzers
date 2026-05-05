@@ -1,15 +1,14 @@
 import type { Player } from "@shared/game-state";
 
-// Picks a stable color per playerId. Cheap hash → palette index.
 const PALETTE = [
-  "bg-pink-500",
-  "bg-cyan-400",
-  "bg-yellow-400",
-  "bg-green-400",
-  "bg-orange-400",
-  "bg-blue-400",
-  "bg-purple-400",
-  "bg-red-400",
+  "from-pink-400 to-pink-600",
+  "from-cyan-300 to-cyan-500",
+  "from-yellow-300 to-yellow-500",
+  "from-green-400 to-green-600",
+  "from-orange-400 to-orange-600",
+  "from-blue-400 to-blue-600",
+  "from-purple-400 to-purple-600",
+  "from-red-400 to-red-600",
 ];
 
 function colorFor(id: string): string {
@@ -32,20 +31,27 @@ export function PlayerAvatar({ player, size = "md", highlight = false }: Props) 
     .join("") || "?";
   const sizeClasses =
     size === "lg"
-      ? "w-24 h-24 text-3xl"
+      ? "w-32 h-32 text-5xl"
       : size === "sm"
-      ? "w-8 h-8 text-xs"
-      : "w-12 h-12 text-base";
+      ? "w-9 h-9 text-xs"
+      : "w-14 h-14 text-lg";
   return (
     <div
-      className={`${sizeClasses} ${colorFor(
-        player.id,
-      )} rounded-full flex items-center justify-center font-black text-black ring-offset-2 ring-offset-black ${
-        highlight ? "ring-4 ring-pink-400 animate-pulse" : ""
+      className={`relative ${sizeClasses} rounded-full font-display text-black ring-offset-2 ring-offset-black ${
+        highlight ? "ring-4 ring-neon-pink shadow-neon" : "ring-2 ring-black/40"
       }`}
       title={player.name}
     >
-      {initials}
+      <div
+        className={`absolute inset-0 rounded-full bg-gradient-to-br ${colorFor(
+          player.id,
+        )} flex items-center justify-center font-black tracking-tight`}
+      >
+        {initials}
+      </div>
+      {highlight && (
+        <div className="absolute inset-0 rounded-full pointer-events-none animate-glow-pulse" />
+      )}
     </div>
   );
 }
