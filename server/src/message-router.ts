@@ -158,10 +158,19 @@ export function handleClientMessage(
           room.handleResetGame(playerId);
           break;
         case "LEAVE": {
-          const action = { ...msg, playerId } as Action;
+          // If the host sends LEAVE with a buzzPlayerId, remove that player
+          // instead (buzz controllers share the host's socket).
+          const targetId =
+            msg.payload?.buzzPlayerId &&
+            playerId === room.state.hostId
+              ? msg.payload.buzzPlayerId
+              : playerId;
+          const action = { type: "LEAVE" as const, playerId: targetId, payload: msg.payload ?? {} } as Action;
           room.dispatch(action);
-          ws.data.playerId = null;
-          ws.data.roomCode = null;
+          if (targetId === playerId) {
+            ws.data.playerId = null;
+            ws.data.roomCode = null;
+          }
           break;
         }
       }

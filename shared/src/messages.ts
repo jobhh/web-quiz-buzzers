@@ -21,7 +21,7 @@ export type ClientMessage =
   | { type: "WAGER"; payload: { amount: number } }
   | { type: "NEXT_QUESTION"; payload?: Record<string, never> }
   | { type: "RESET_GAME"; payload?: Record<string, never> }
-  | { type: "LEAVE"; payload?: Record<string, never> };
+  | { type: "LEAVE"; payload?: { buzzPlayerId?: string } };
 
 // Server → Client.
 export type ServerMessage =

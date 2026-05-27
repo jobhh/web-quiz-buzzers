@@ -34,6 +34,7 @@ const keyOf = (d: number, c: number): NamingKey => `${d}:${c}`;
 export function LobbyScreen({ state, serverInfo }: Props) {
   const { dongleCount, manager } = useBuzzManagerStatus();
   const [namingSlots, setNamingSlots] = useState<Set<NamingKey>>(new Set());
+  const [confirmLeaveSlots, setConfirmLeaveSlots] = useState<Set<NamingKey>>(new Set());
   const [selectedPack, setSelectedPack] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,12 +48,44 @@ export function LobbyScreen({ state, serverInfo }: Props) {
       if (kind !== "press") return;
       if (p.buttonIndex !== 0) return;
       const slotKey = keyOf(p.dongleId, p.controllerIndex);
-      const occupied = state.players.some(
+
+      // Check if this slot is already claimed by a player
+      const player = state.players.find(
         (pl) =>
           pl.buzzSlot?.dongleId === p.dongleId &&
           pl.buzzSlot?.controllerIndex === p.controllerIndex,
       );
-      if (occupied) return;
+
+      if (player) {
+        // Claimed slot: double-press to leave
+        setConfirmLeaveSlots((prev) => {
+          if (prev.has(slotKey)) {
+            // Second press — remove the player
+            gameSession.send({
+              type: "LEAVE",
+              payload: { buzzPlayerId: player.id },
+            });
+            const next = new Set(prev);
+            next.delete(slotKey);
+            return next;
+          }
+          // First press — enter confirm state, auto-clear after 3s
+          const next = new Set(prev);
+          next.add(slotKey);
+          setTimeout(() => {
+            setConfirmLeaveSlots((cur) => {
+              if (!cur.has(slotKey)) return cur;
+              const n = new Set(cur);
+              n.delete(slotKey);
+              return n;
+            });
+          }, 3000);
+          return next;
+        });
+        return;
+      }
+
+      // Unclaimed slot: enter naming mode
       setNamingSlots((prev) => {
         if (prev.has(slotKey)) return prev;
         const next = new Set(prev);
@@ -161,6 +194,7 @@ export function LobbyScreen({ state, serverInfo }: Props) {
                       controllerIndex={ci as ControllerSlot}
                       player={player}
                       isNaming={namingSlots.has(slotKey)}
+                      confirmingLeave={confirmLeaveSlots.has(slotKey)}
                       onSubmitName={(name) =>
                         onSubmitName(d.dongleId, ci as ControllerSlot, name)
                       }

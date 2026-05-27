@@ -14,6 +14,7 @@ interface Props {
   controllerIndex: ControllerSlot;
   player: Player | null;
   isNaming: boolean;
+  confirmingLeave?: boolean;
   onSubmitName: (name: string) => void;
   onCancelName: () => void;
 }
@@ -25,6 +26,7 @@ export function BuzzPadSlot({
   controllerIndex,
   player,
   isNaming,
+  confirmingLeave,
   onSubmitName,
   onCancelName,
 }: Props) {
@@ -94,16 +96,27 @@ export function BuzzPadSlot({
       )}
       <AnimatePresence>
         {mode === "claimed" && player && (
-          <motion.p
-            key={player.id}
-            initial={{ y: 12, opacity: 0, scale: 0.7 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ type: "spring", stiffness: 240, damping: 14 }}
-            className="text-lg font-display tracking-wider text-cyan-100 relative z-10 truncate"
-          >
-            {player.name}
-          </motion.p>
+          <motion.div key={player.id}>
+            <motion.p
+              initial={{ y: 12, opacity: 0, scale: 0.7 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ type: "spring", stiffness: 240, damping: 14 }}
+              className="text-lg font-display tracking-wider text-cyan-100 relative z-10 truncate"
+            >
+              {player.name}
+            </motion.p>
+            {confirmingLeave && (
+              <motion.p
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="text-xs opacity-60 mt-1 relative z-10 animate-pulse"
+              >
+                Press the big <span className="text-red-400 font-bold">RED</span> button again to leave
+              </motion.p>
+            )}
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
