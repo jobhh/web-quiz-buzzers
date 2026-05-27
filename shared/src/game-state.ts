@@ -72,5 +72,6 @@ export interface GameState {
   speedRoundAnswers?: Record<string, SpeedRoundAnswer>;
   wagers?: Record<string, number>;
   lastReveal?: RevealResult;
+  wrongAnswers?: number[];
   startedAt?: number;
 }

@@ -161,6 +161,8 @@ function BuzzGameInputs() {
     const isSpeedAnswer =
       state.phase === "BUZZ_OPEN" && state.currentRound === 2;
     if (isFinalAnswer || isBuzzerAnswer || isSpeedAnswer) {
+      // Don't allow selecting an already-eliminated answer
+      if (state.wrongAnswers?.includes(choice)) return;
       gameSession.send({ type: "ANSWER", payload: { choice, buzzPlayerId: me.id } });
       return;
     }

@@ -89,26 +89,36 @@ export function BuzzInScreen({ state }: Props) {
 
       {/* Answers anchored under the question. */}
       <div className="grid grid-cols-2 gap-4">
-        {q.answers.map((a, i) => (
-          <motion.div
-            key={i}
-            initial={{ y: 60, opacity: 0, rotateX: -45, scale: 0.9 }}
-            animate={{ y: 0, opacity: 1, rotateX: 0, scale: 1 }}
-            transition={{
-              duration: 0.55,
-              delay: 0.5 + i * 0.14,
-              ease: [0.34, 1.56, 0.64, 1],
-            }}
-            whileHover={{ scale: 1.03, rotate: 0.5 }}
-            className={`${COLORS[i]} ${ACCENT_RING[i]} relative rounded-lg p-5 flex items-center gap-4 text-2xl font-display overflow-hidden`}
-          >
-            <ScanSweep />
-            <span className="text-5xl opacity-70 font-black drop-shadow">
-              {String.fromCharCode(65 + i)}
-            </span>
-            <span className="leading-tight relative z-10">{a}</span>
-          </motion.div>
-        ))}
+        {q.answers.map((a, i) => {
+          const isWrong = state.wrongAnswers?.includes(i) ?? false;
+          return (
+            <motion.div
+              key={i}
+              initial={{ y: 60, opacity: 0, rotateX: -45, scale: 0.9 }}
+              animate={
+                isWrong
+                  ? { y: 0, opacity: 0.35, rotateX: 0, scale: 0.92, filter: "saturate(0.2) brightness(0.6)" }
+                  : { y: 0, opacity: 1, rotateX: 0, scale: 1 }
+              }
+              transition={{
+                duration: 0.55,
+                delay: 0.5 + i * 0.14,
+                ease: [0.34, 1.56, 0.64, 1],
+              }}
+              whileHover={isWrong ? {} : { scale: 1.03, rotate: 0.5 }}
+              className={`${COLORS[i]} ${isWrong ? "" : ACCENT_RING[i]} relative rounded-lg p-5 flex items-center gap-4 text-2xl font-display overflow-hidden`}
+            >
+              {!isWrong && <ScanSweep />}
+              <span className="text-5xl opacity-70 font-black drop-shadow">
+                {String.fromCharCode(65 + i)}
+              </span>
+              <span className={`leading-tight relative z-10 ${isWrong ? "line-through" : ""}`}>{a}</span>
+              {isWrong && (
+                <span className="ml-auto text-4xl opacity-70">✗</span>
+              )}
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Speed round: live submission status under the answers. */}

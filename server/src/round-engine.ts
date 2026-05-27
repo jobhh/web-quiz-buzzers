@@ -307,6 +307,7 @@ function enterQuestionAndOpen(
       lockedOutPlayerIds: [],
       speedRoundAnswers: undefined,
       lastReveal: undefined,
+      wrongAnswers: undefined,
       buzzWindowEndsAt: Date.now() + windowMs,
     },
     clear: ALL_TIMERS,
@@ -360,8 +361,8 @@ function resolveBuzzAnswer(
     });
   }
   // Original buzzer wrong: open steal window for everyone else.
-  // (openSteal reads state.buzzedPlayerId to know who to lock out, then clears it.)
-  return openSteal(state);
+  const wrongAnswers = [...(state.wrongAnswers ?? []), choice];
+  return openSteal({ ...state, wrongAnswers });
 }
 
 function openSteal(state: GameState): EngineResult {
@@ -428,6 +429,8 @@ function enterReveal(
   extra?: Partial<RevealResult>,
 ): EngineResult {
   const safeDeltas: Record<string, number> = deltas ?? {};
+  // Always resolve the correct answer so the reveal screen can highlight it.
+  const resolvedCorrect = correctIndex ?? getCurrentQuestion(state, rounds)?.correct ?? -1;
   // Apply deltas to player scores. Final round clamps at 0 (no negative scores).
   const isFinal = state.currentRound === 4;
   const players: Player[] = state.players.map((p) => {
@@ -437,7 +440,7 @@ function enterReveal(
     return { ...p, score: next };
   });
   const reveal: RevealResult = {
-    correctIndex: correctIndex ?? -1,
+    correctIndex: resolvedCorrect,
     scoreDeltas: safeDeltas,
     ...extra,
   };
