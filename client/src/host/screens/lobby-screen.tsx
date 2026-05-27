@@ -131,7 +131,7 @@ export function LobbyScreen({ state, serverInfo }: Props) {
   const canStart = state.players.length >= 1 && selectedPack !== null;
 
   return (
-    <div className="min-h-screen text-cyan-100 p-6 font-body relative">
+    <div className="min-h-screen text-cyan-100 p-6 font-body relative overflow-hidden">
       <AnimatedBg variant="grid" />
 
       <header className="flex items-baseline gap-6">
