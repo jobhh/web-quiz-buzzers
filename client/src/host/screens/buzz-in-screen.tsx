@@ -37,6 +37,10 @@ export function BuzzInScreen({ state }: Props) {
 
       <header className="flex items-baseline justify-between text-xs uppercase tracking-widest opacity-80 font-display">
         <span>Round {state.currentRound} · Q{state.questionIndex + 1}</span>
+        <span>{q.category}</span>
+      </header>
+
+      <div className="flex justify-center mt-4 p-4">
         <motion.span
           animate={{
             scale: [1, 1.18, 1],
@@ -44,18 +48,17 @@ export function BuzzInScreen({ state }: Props) {
             opacity: [0.7, 1, 0.7],
           }}
           transition={{ duration: 0.85, repeat: Infinity, ease: "easeInOut" }}
-          className={`text-base font-black ${
+          className={`inline-block text-4xl md:text-5xl font-black font-display ${
             isSpeed
               ? "text-neon-cyan animate-chromatic-shake"
               : isSteal
               ? "text-red-400 animate-chromatic-shake"
               : "text-neon-pink"
-          }`}
+          } drop-shadow-[0_0_20px_currentColor]`}
         >
           {isSpeed ? "ANSWER NOW!" : isSteal ? "STEAL OPEN!" : "BUZZ IN!"}
         </motion.span>
-        <span>{q.category}</span>
-      </header>
+      </div>
 
       {/* Question + media: centered vertical block. */}
       <div className="flex-1 flex flex-col items-center justify-center text-center min-h-0 py-6">
