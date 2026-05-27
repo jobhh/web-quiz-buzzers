@@ -48,7 +48,7 @@ export function RevealScreen({ state }: Props) {
   const correctIdx = reveal.correctIndex;
 
   return (
-    <div className="min-h-screen text-cyan-100 px-8 py-6 flex flex-col relative">
+    <div className="min-h-screen text-cyan-100 px-8 py-6 flex flex-col relative overflow-hidden">
       <AnimatedBg variant={someoneScored ? "spotlight" : "grid"} />
 
       <h1 className="text-3xl md:text-4xl font-display text-center max-w-4xl mx-auto leading-tight text-glow-cyan">
