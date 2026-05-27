@@ -207,6 +207,16 @@ export function LobbyScreen({ state, serverInfo }: Props) {
             </motion.div>
           ))}
 
+          {buzzManager.isSupported() && (
+            <button
+              type="button"
+              onClick={() => buzzManager.requestDongle()}
+              className="mt-2 px-4 py-2 text-sm font-display uppercase tracking-widest border border-neon-cyan text-neon-cyan rounded hover:bg-neon-cyan/10 transition-colors"
+            >
+              + Connect More Buzz Controllers
+            </button>
+          )}
+
           <h2 className="text-sm uppercase tracking-widest opacity-60 mt-6 mb-2 font-display">
             Phone Players ({phonePlayers.length})
           </h2>
