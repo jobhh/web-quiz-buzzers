@@ -47,6 +47,7 @@ export function LobbyScreen({ state, serverInfo }: Props) {
     return buzzManager.on((p, kind) => {
       if (kind !== "press") return;
       if (p.buttonIndex !== 0) return;
+      if (state.phase !== "LOBBY") return;
       const slotKey = keyOf(p.dongleId, p.controllerIndex);
 
       // Check if this slot is already claimed by a player
@@ -93,7 +94,7 @@ export function LobbyScreen({ state, serverInfo }: Props) {
         return next;
       });
     });
-  }, [state.players]);
+  }, [state.players, state.phase]);
 
   const onSubmitName = (dongleId: number, controllerIndex: ControllerSlot, name: string) => {
     gameSession.send({

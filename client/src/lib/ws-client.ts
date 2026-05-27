@@ -48,6 +48,7 @@ export class WSClient {
         console.warn("[ws] invalid JSON from server");
         return;
       }
+      console.log("[ws] received:", msg.type, msg.type === "STATE_UPDATE" ? "phase=" + (msg as any).payload?.state?.phase : JSON.stringify((msg as any).payload));
       for (const h of this.messageHandlers) h(msg);
     });
     ws.addEventListener("close", () => {
@@ -65,7 +66,10 @@ export class WSClient {
 
   send(msg: ClientMessage): void {
     if (this.ws?.readyState === WebSocket.OPEN) {
+      console.log("[ws] sending:", msg.type, msg);
       this.ws.send(JSON.stringify(msg));
+    } else {
+      console.warn("[ws] send failed, readyState:", this.ws?.readyState);
     }
   }
 

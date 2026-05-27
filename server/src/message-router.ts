@@ -65,14 +65,21 @@ export function handleClientMessage(
         return;
       }
       const playerId = randomUUID();
-      ws.data.playerId = playerId;
-      ws.data.roomCode = room.state.roomCode;
+      // Don't overwrite ws.data if the host is registering a buzz player on
+      // its behalf — the host's socket identity must stay as hostId.
+      const isHost = ws.data.playerId === room.state.hostId;
+      if (!isHost) {
+        ws.data.playerId = playerId;
+        ws.data.roomCode = room.state.roomCode;
+      }
       // Ack first (see CREATE_ROOM rationale).
       send(ws, {
         type: "JOIN_ACK",
         payload: { roomCode: room.state.roomCode, playerId },
       });
-      room.attachSocket(playerId, ws);
+      if (!isHost) {
+        room.attachSocket(playerId, ws);
+      }
       room.dispatch({ type: "JOIN_ROOM", playerId, payload: msg.payload });
       return;
     }

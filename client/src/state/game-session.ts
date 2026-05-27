@@ -41,6 +41,10 @@ export class GameSession {
 
   send(msg: ClientMessage): void {
     if (msg.type === "JOIN_ROOM") this.pendingRoomCode = msg.payload.roomCode;
+    if (msg.type === "START_GAME") {
+      const stored = this.getStored();
+      console.log("[session] START_GAME: stored playerId =", stored?.playerId);
+    }
     // ws-client expects WSMessage; ClientMessage is a subset by shape.
     this.ws?.send(msg as never);
   }
@@ -77,6 +81,7 @@ export class GameSession {
   }
 
   private save(roomCode: string, playerId: string): void {
+    console.log("[session] saving:", { roomCode, playerId });
     try {
       localStorage.setItem(
         STORAGE_KEY,
@@ -105,7 +110,11 @@ export class GameSession {
         this.save(msg.payload.roomCode, msg.payload.playerId);
         return;
       case "JOIN_ACK":
-        this.save(msg.payload.roomCode, msg.payload.playerId);
+        // Only save if we don't already have a session (i.e. this is OUR join,
+        // not a buzz player the host registered on its behalf).
+        if (!this.getStored()) {
+          this.save(msg.payload.roomCode, msg.payload.playerId);
+        }
         this.pendingRoomCode = null;
         return;
       case "ERROR":
