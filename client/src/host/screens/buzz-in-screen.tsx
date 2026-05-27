@@ -48,13 +48,7 @@ export function BuzzInScreen({ state }: Props) {
             opacity: [0.7, 1, 0.7],
           }}
           transition={{ duration: 0.85, repeat: Infinity, ease: "easeInOut" }}
-          className={`inline-block text-4xl md:text-5xl font-black font-display ${
-            isSpeed
-              ? "text-neon-cyan animate-chromatic-shake"
-              : isSteal
-              ? "text-red-400 animate-chromatic-shake"
-              : "text-neon-pink"
-          } drop-shadow-[0_0_20px_currentColor]`}
+          className={`inline-block text-4xl md:text-5xl font-black font-display text-neon-pink drop-shadow-[0_0_20px_currentColor]`}
         >
           {isSpeed ? "ANSWER NOW!" : isSteal ? "STEAL OPEN!" : "BUZZ IN!"}
         </motion.span>
