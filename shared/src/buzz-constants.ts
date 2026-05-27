@@ -26,9 +26,9 @@ export const BUTTON_INDEX = {
 export type AnswerChoice = 0 | 1 | 2 | 3;
 
 // Maps the 4 colored answer buttons (1..4 = Y/G/O/B) to multiple-choice
-// answer indices A..D. Button 0 (the big red BUZZ) is intentionally not
-// mapped — buzzToChoice returns undefined for it so callers null-check.
-const ANSWER_MAP = { 1: 0, 2: 1, 3: 2, 4: 3 } as const;
+// answer indices A..D. The mapping matches physical button colors to
+// on-screen answer colors: A=blue, B=orange, C=green, D=yellow.
+const ANSWER_MAP = { 1: 3, 2: 2, 3: 1, 4: 0 } as const;
 
 export function buttonToChoice(buttonIndex: number): AnswerChoice | undefined {
   return (ANSWER_MAP as Record<number, AnswerChoice>)[buttonIndex];

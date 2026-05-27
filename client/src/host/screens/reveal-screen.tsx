@@ -8,10 +8,10 @@ import { ScoreDeltaPopup } from "../components/score-delta-popup";
 import { AnimatedBg, Shockwave, flashScreen } from "@client/anim";
 
 const COLORS = [
-  "bg-yellow-400 text-black",
-  "bg-green-500 text-black",
-  "bg-orange-500 text-black",
   "bg-blue-500 text-white",
+  "bg-orange-500 text-black",
+  "bg-green-500 text-black",
+  "bg-yellow-400 text-black",
 ];
 
 interface Props {

@@ -9,10 +9,10 @@ interface Props {
 }
 
 const BUTTONS: { choice: 0 | 1 | 2 | 3; bg: string; text: string }[] = [
-  { choice: 0, bg: "bg-gradient-to-br from-yellow-300 to-yellow-500", text: "text-black" },
-  { choice: 1, bg: "bg-gradient-to-br from-green-400 to-green-600", text: "text-black" },
-  { choice: 2, bg: "bg-gradient-to-br from-orange-400 to-orange-600", text: "text-black" },
-  { choice: 3, bg: "bg-gradient-to-br from-blue-400 to-blue-600", text: "text-white" },
+  { choice: 0, bg: "bg-gradient-to-br from-blue-400 to-blue-600", text: "text-white" },
+  { choice: 1, bg: "bg-gradient-to-br from-orange-400 to-orange-600", text: "text-black" },
+  { choice: 2, bg: "bg-gradient-to-br from-green-400 to-green-600", text: "text-black" },
+  { choice: 3, bg: "bg-gradient-to-br from-yellow-300 to-yellow-500", text: "text-black" },
 ];
 
 export function AnswerScreen({ state }: Props) {

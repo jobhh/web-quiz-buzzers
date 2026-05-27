@@ -7,16 +7,16 @@ import { R2_WINDOW_MS, BUZZ_OPEN_IDLE_MS } from "@shared/scoring";
 import { AnimatedBg, ScanSweep, SplitText } from "@client/anim";
 
 const COLORS = [
-  "bg-yellow-400 text-black",
-  "bg-green-500 text-black",
-  "bg-orange-500 text-black",
   "bg-blue-500 text-white",
+  "bg-orange-500 text-black",
+  "bg-green-500 text-black",
+  "bg-yellow-400 text-black",
 ];
 const ACCENT_RING = [
-  "shadow-[0_0_30px_rgba(250,204,21,0.6)]",
-  "shadow-[0_0_30px_rgba(34,197,94,0.6)]",
-  "shadow-[0_0_30px_rgba(249,115,22,0.6)]",
   "shadow-[0_0_30px_rgba(59,130,246,0.6)]",
+  "shadow-[0_0_30px_rgba(249,115,22,0.6)]",
+  "shadow-[0_0_30px_rgba(34,197,94,0.6)]",
+  "shadow-[0_0_30px_rgba(250,204,21,0.6)]",
 ];
 
 interface Props {
