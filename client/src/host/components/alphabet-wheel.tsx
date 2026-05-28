@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import gsap from "gsap";
 import { buzzManager } from "@client/hid/buzz-manager";
 import type { ButtonIndex, ControllerSlot } from "@client/hid/buzz-types";
@@ -41,38 +41,59 @@ export function AlphabetWheel({ dongleId, controllerIndex, onSubmit, onCancel }:
     }
   }, [letterIdx]);
 
+  const letterIdxRef = useRef(letterIdx);
+  letterIdxRef.current = letterIdx;
+  const onSubmitRef = useRef(onSubmit);
+  onSubmitRef.current = onSubmit;
+  const onCancelRef = useRef(onCancel);
+  onCancelRef.current = onCancel;
+
   useEffect(() => {
-    return buzzManager.on((p, kind) => {
-      if (kind !== "press") return;
+    let repeatTimer: ReturnType<typeof setTimeout> | null = null;
+    let repeatInterval: ReturnType<typeof setInterval> | null = null;
+    const clearRepeat = () => {
+      if (repeatTimer) { clearTimeout(repeatTimer); repeatTimer = null; }
+      if (repeatInterval) { clearInterval(repeatInterval); repeatInterval = null; }
+    };
+    const unsub = buzzManager.on((p, kind) => {
       if (p.dongleId !== dongleId || p.controllerIndex !== controllerIndex) return;
+      if (kind === "release") { if (p.buttonIndex === 1 || p.buttonIndex === 2) clearRepeat(); return; }
+      if (kind !== "press") return;
       handleButton(p.buttonIndex);
+      if (p.buttonIndex === 1 || p.buttonIndex === 2) {
+        clearRepeat();
+        repeatTimer = setTimeout(() => {
+          repeatInterval = setInterval(() => handleButton(p.buttonIndex), 80);
+        }, 300);
+      }
     });
     function handleButton(idx: ButtonIndex) {
       switch (idx) {
         case 0:
-          if (nameRef.current.length === 0) onCancel();
-          else setName((n) => n.slice(0, -1));
+          if (nameRef.current.trim().length > 0) onSubmitRef.current(nameRef.current.trim());
           return;
         case 1:
-          setLetterIdx((i) => (i - 1 + ALPHABET.length) % ALPHABET.length);
+          setLetterIdx((i) => (i + 1) % ALPHABET.length);
           return;
         case 2:
-          setLetterIdx((i) => (i + 1) % ALPHABET.length);
+          setLetterIdx((i) => (i - 1 + ALPHABET.length) % ALPHABET.length);
           return;
         case 3:
           if (nameRef.current.length < 12) {
-            setName((n) => n + ALPHABET[letterIdx]);
+            setName((n) => n + ALPHABET[letterIdxRef.current]);
           } else {
             setShake(true);
             setTimeout(() => setShake(false), 400);
           }
           return;
         case 4:
-          if (nameRef.current.trim().length > 0) onSubmit(nameRef.current.trim());
+          if (nameRef.current.length === 0) onCancelRef.current();
+          else setName((n) => n.slice(0, -1));
           return;
       }
     }
-  }, [dongleId, controllerIndex, letterIdx, onSubmit, onCancel]);
+    return () => { clearRepeat(); unsub(); };
+  }, [dongleId, controllerIndex]);
 
   const prev = ALPHABET[(letterIdx - 1 + ALPHABET.length) % ALPHABET.length];
   const curr = ALPHABET[letterIdx];
@@ -83,42 +104,28 @@ export function AlphabetWheel({ dongleId, controllerIndex, onSubmit, onCancel }:
       <motion.div
         animate={shake ? { x: [0, -4, 4, -3, 3, 0] } : { x: 0 }}
         transition={{ duration: 0.35 }}
-        className="font-display text-2xl mb-2 min-h-[2rem] tracking-widest flex justify-center items-center gap-0.5"
+        className="font-display text-2xl min-h-[4rem] tracking-widest flex justify-center items-center gap-0.5"
       >
-        <AnimatePresence mode="popLayout" initial={false}>
-          {(name || "_").split("").map((c, i) => (
-            <motion.span
-              key={`${i}-${c}`}
-              initial={{ y: -16, opacity: 0, scale: 0.6 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 16, opacity: 0, scale: 0.6 }}
-              transition={{ type: "spring", stiffness: 320, damping: 18 }}
-              className="inline-block text-cyan-100"
-            >
-              {c}
-            </motion.span>
-          ))}
-        </AnimatePresence>
-      </motion.div>
-      <div
-        className="flex items-center justify-center gap-3 text-3xl font-display"
-        style={{ perspective: 600 }}
-      >
-        <span className="opacity-30">{visualize(prev)}</span>
-        <span
-          ref={currentRef}
-          className="text-neon-pink text-5xl bg-neon-pink/10 px-3 rounded text-glow-pink inline-block"
-        >
-          {visualize(curr)}
+        {/* Already-typed characters */}
+        {name.split("").map((c, i) => (
+          <span key={i} className="inline-block text-cyan-100">{visualize(c)}</span>
+        ))}
+        {/* Vertical scroll wheel at cursor */}
+        <span className="inline-flex flex-col items-center leading-none mx-0.5">
+          <span className="text-sm opacity-30">{visualize(prev)}</span>
+          <span
+            ref={currentRef}
+            className="text-neon-pink text-3xl bg-neon-pink/10 px-1.5 rounded text-glow-pink"
+          >
+            {visualize(curr)}
+          </span>
+          <span className="text-sm opacity-30">{visualize(next)}</span>
         </span>
-        <span className="opacity-30">{visualize(next)}</span>
-      </div>
-      <div className="text-[10px] uppercase tracking-widest opacity-80 mt-2 leading-tight flex justify-center gap-2 flex-wrap">
-        <span className="text-red-400">R del/cancel</span>
-        <span className="text-blue-400">B submit</span>
-        <span className="text-orange-400">O add</span>
-        <span className="text-green-400">G next</span>
-        <span className="text-yellow-400">Y prev</span>
+      </motion.div>
+      <div className="text-[10px] uppercase tracking-widest opacity-80 mt-2 leading-relaxed flex flex-col items-center">
+        <span className="text-red-400">R done</span>
+        <span><span className="text-blue-400">B back</span> <span className="mx-1.5">·</span> <span className="text-orange-400">O next</span></span>
+        <span><span className="text-green-400">G up</span> <span className="mx-1.5">·</span> <span className="text-yellow-400">Y down</span></span>
       </div>
     </div>
   );
