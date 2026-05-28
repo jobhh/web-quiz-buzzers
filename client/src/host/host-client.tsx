@@ -181,7 +181,7 @@ function BuzzGameInputs() {
     // Wager presets in FINAL_WAGER: Y=20%, G=40%, O=60%, B=80%.
     if (state.phase === "FINAL_WAGER") {
       if (state.wagers?.[me.id] != null) return; // already wagered
-      const pct = [0.2, 0.4, 0.6, 0.8][choice] ?? 0;
+      const pct = { 1: 0.2, 2: 0.4, 3: 0.6, 4: 0.8 }[p.buttonIndex] ?? 0;
       const amount = Math.floor(me.score * pct);
       gameSession.send({ type: "WAGER", payload: { amount, buzzPlayerId: me.id } });
     }
