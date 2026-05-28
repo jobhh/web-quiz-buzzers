@@ -19,6 +19,8 @@ const ACCENT_RING = [
   "shadow-[0_0_30px_rgba(250,204,21,0.6)]",
 ];
 
+const SPLIT_TEXT_FROM = { y: 26, opacity: 0, rotate: -3 };
+
 interface Props {
   state: GameState;
 }
@@ -69,7 +71,7 @@ export function BuzzInScreen({ state }: Props) {
             duration={0.55}
             ease="back.out(1.6)"
             animKey={animKey}
-            from={{ y: 26, opacity: 0, rotate: -3 }}
+            from={SPLIT_TEXT_FROM}
           />
         </motion.h1>
         {q.media && (
