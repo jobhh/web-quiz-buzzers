@@ -11,13 +11,13 @@ export const clientMessageSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("PING"), payload: emptyPayload }),
   z.object({
     type: z.literal("CREATE_ROOM"),
-    payload: z.object({ hostName: z.string().min(1).max(40) }),
+    payload: z.object({ hostName: z.string().min(1).max(12) }),
   }),
   z.object({
     type: z.literal("JOIN_ROOM"),
     payload: z.object({
       roomCode: z.string().regex(/^[A-Z0-9]{4}$/),
-      playerName: z.string().min(1).max(40),
+      playerName: z.string().min(1).max(12),
       deviceType: z.enum(["phone", "buzz"]),
       buzzSlot: buzzSlotSchema.optional(),
     }),

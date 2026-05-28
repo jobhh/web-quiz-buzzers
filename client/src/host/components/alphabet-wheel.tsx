@@ -19,6 +19,7 @@ interface Props {
 export function AlphabetWheel({ dongleId, controllerIndex, onSubmit, onCancel }: Props) {
   const [letterIdx, setLetterIdx] = useState(0);
   const [name, setName] = useState("");
+  const [shake, setShake] = useState(false);
   const nameRef = useRef(name);
   nameRef.current = name;
   const currentRef = useRef<HTMLSpanElement | null>(null);
@@ -59,8 +60,11 @@ export function AlphabetWheel({ dongleId, controllerIndex, onSubmit, onCancel }:
           setLetterIdx((i) => (i + 1) % ALPHABET.length);
           return;
         case 3:
-          if (nameRef.current.length < 20) {
+          if (nameRef.current.length < 12) {
             setName((n) => n + ALPHABET[letterIdx]);
+          } else {
+            setShake(true);
+            setTimeout(() => setShake(false), 400);
           }
           return;
         case 4:
@@ -76,7 +80,11 @@ export function AlphabetWheel({ dongleId, controllerIndex, onSubmit, onCancel }:
 
   return (
     <div className="border-2 border-neon-pink rounded p-3 text-center bg-neon-dark/60 backdrop-blur-sm">
-      <div className="font-display text-2xl mb-2 min-h-[2rem] tracking-widest flex justify-center items-center gap-0.5">
+      <motion.div
+        animate={shake ? { x: [0, -4, 4, -3, 3, 0] } : { x: 0 }}
+        transition={{ duration: 0.35 }}
+        className="font-display text-2xl mb-2 min-h-[2rem] tracking-widest flex justify-center items-center gap-0.5"
+      >
         <AnimatePresence mode="popLayout" initial={false}>
           {(name || "_").split("").map((c, i) => (
             <motion.span
@@ -91,7 +99,7 @@ export function AlphabetWheel({ dongleId, controllerIndex, onSubmit, onCancel }:
             </motion.span>
           ))}
         </AnimatePresence>
-      </div>
+      </motion.div>
       <div
         className="flex items-center justify-center gap-3 text-3xl font-display"
         style={{ perspective: 600 }}
@@ -105,8 +113,12 @@ export function AlphabetWheel({ dongleId, controllerIndex, onSubmit, onCancel }:
         </span>
         <span className="opacity-30">{visualize(next)}</span>
       </div>
-      <div className="text-[10px] uppercase tracking-widest opacity-60 mt-2 leading-tight">
-        Y prev · G next · O add · B submit · RED del/cancel
+      <div className="text-[10px] uppercase tracking-widest opacity-80 mt-2 leading-tight flex justify-center gap-2 flex-wrap">
+        <span className="text-red-400">R del/cancel</span>
+        <span className="text-blue-400">B submit</span>
+        <span className="text-orange-400">O add</span>
+        <span className="text-green-400">G next</span>
+        <span className="text-yellow-400">Y prev</span>
       </div>
     </div>
   );

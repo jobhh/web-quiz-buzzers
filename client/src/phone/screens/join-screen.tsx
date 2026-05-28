@@ -82,7 +82,7 @@ export function JoinScreen({ initialRoomCode, errorMessage }: Props) {
           className="w-full bg-black border-2 border-neon-cyan/60 rounded text-2xl py-3 px-3 mt-1 focus:border-neon-pink focus:outline-none transition-colors"
           placeholder="Player 1"
           value={name}
-          maxLength={40}
+          maxLength={12}
           disabled={submitted}
           onChange={(e) => setName(e.target.value)}
         />
