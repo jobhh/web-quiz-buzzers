@@ -36,8 +36,16 @@ export function BuzzPadSlot({
   const cardRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const on = mode !== "unclaimed";
-    dongle.setLed(controllerIndex, on).catch(() => {});
+    if (mode === "naming") {
+      let on = true;
+      dongle.setLed(controllerIndex, true).catch(() => {});
+      const interval = setInterval(() => {
+        on = !on;
+        dongle.setLed(controllerIndex, on).catch(() => {});
+      }, 400);
+      return () => { clearInterval(interval); dongle.setLed(controllerIndex, false).catch(() => {}); };
+    }
+    dongle.setLed(controllerIndex, mode === "claimed").catch(() => {});
   }, [dongle, controllerIndex, mode]);
 
   useEffect(() => {

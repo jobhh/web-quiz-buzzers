@@ -119,6 +119,7 @@ export function HostClient() {
       <ScreenRouter state={state} serverInfo={serverInfo} />
       <HostControls state={state} />
       <BuzzGameInputs />
+      <BuzzLedController />
     </>
   );
 }
@@ -194,4 +195,72 @@ import { getGameState } from "@client/state/game-store";
 function useGameStateSnapshot() {
   // Always reads the latest store value at call time.
   return getGameState();
+}
+
+// Controls buzz controller LEDs based on game phase.
+function BuzzLedController() {
+  const state = useGameState();
+
+  useEffect(() => {
+    if (!state || state.phase === "LOBBY") return;
+
+    const dongles = buzzManager.dongles;
+    if (dongles.length === 0) return;
+
+    const buzzPlayers = state.players.filter((p) => p.buzzSlot);
+
+    const setAll = (on: boolean) => {
+      for (const p of buzzPlayers) {
+        const d = dongles.find((dg) => dg.dongleId === p.buzzSlot!.dongleId);
+        d?.setLed(p.buzzSlot!.controllerIndex as 0 | 1 | 2 | 3, on).catch(() => {});
+      }
+    };
+
+    const setOnly = (playerId: string) => {
+      for (const p of buzzPlayers) {
+        const d = dongles.find((dg) => dg.dongleId === p.buzzSlot!.dongleId);
+        d?.setLed(p.buzzSlot!.controllerIndex as 0 | 1 | 2 | 3, p.id === playerId).catch(() => {});
+      }
+    };
+
+    // BUZZ_OPEN R1/R3: pulse if no one buzzed yet, solid on buzzed player only
+    if (state.phase === "BUZZ_OPEN" && (state.currentRound === 1 || state.currentRound === 3)) {
+      if (state.buzzedPlayerId) {
+        setOnly(state.buzzedPlayerId);
+        return;
+      }
+      // Pulse all
+      let on = true;
+      setAll(true);
+      const interval = setInterval(() => {
+        on = !on;
+        setAll(on);
+      }, 400);
+      return () => { clearInterval(interval); setAll(false); };
+    }
+
+    // BUZZ_OPEN R2 (speed): all on
+    if (state.phase === "BUZZ_OPEN" && state.currentRound === 2) {
+      setAll(true);
+      return () => { setAll(false); };
+    }
+
+    // ANSWER_LOCK R1/R3: only buzzed player on
+    if (state.phase === "ANSWER_LOCK" && (state.currentRound === 1 || state.currentRound === 3)) {
+      if (state.buzzedPlayerId) setOnly(state.buzzedPlayerId);
+      else setAll(false);
+      return () => { setAll(false); };
+    }
+
+    // ANSWER_LOCK R4 (final): all on
+    if (state.phase === "ANSWER_LOCK" && state.currentRound === 4) {
+      setAll(true);
+      return () => { setAll(false); };
+    }
+
+    // Everything else: off
+    setAll(false);
+  }, [state?.phase, state?.buzzedPlayerId, state?.currentRound]);
+
+  return null;
 }

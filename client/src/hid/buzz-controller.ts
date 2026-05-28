@@ -81,13 +81,14 @@ export class BuzzController {
   }
 
   private async flushLeds(): Promise<void> {
-    // 8-byte unnumbered output report.
-    const buf = new Uint8Array(8);
+    // 7-byte output report (report ID 0 sent separately by WebHID).
+    // Format: [0x00 padding, ctrl1_led, ctrl2_led, ctrl3_led, ctrl4_led, 0x00, 0x00]
+    const buf = new Uint8Array(7);
     buf[0] = 0x00;
     for (let i = 0; i < CONTROLLERS_PER_DONGLE; i++) {
       buf[i + 1] = this.ledState[i] ? 0xff : 0x00;
     }
-    // bytes 5..7 left as 0
+    // bytes 5..6 left as 0
     try {
       await this.device.sendReport(0, buf);
     } catch (err) {
