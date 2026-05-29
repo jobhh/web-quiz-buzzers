@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { getCurrentRoute } from "@client/router";
 
 interface Settings {
   scanlines: boolean;
@@ -8,7 +9,7 @@ interface Settings {
 }
 
 const DEFAULTS: Settings = {
-  scanlines: true,
+  scanlines: getCurrentRoute() !== "phone",
   reducedMotion: false,
   musicVolume: 0.6,
   sfxVolume: 0.9,
