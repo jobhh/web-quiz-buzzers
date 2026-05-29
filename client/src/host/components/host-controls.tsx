@@ -133,9 +133,11 @@ function nextLabel(state: GameState): string | null {
         ? "Begin Final"
         : "Show Question";
     case "BUZZ_OPEN":
-      return state.currentRound === 1 || state.currentRound === 3
-        ? "Skip Question"
-        : null;
+      return "Skip Question";
+    case "FINAL_WAGER":
+      return "Skip Wager";
+    case "ANSWER_LOCK":
+      return "Skip Question";
     case "REVEAL":
       return "Continue";
     case "SCOREBOARD":

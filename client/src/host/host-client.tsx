@@ -120,6 +120,9 @@ export function HostClient() {
       <HostControls state={state} />
       <BuzzGameInputs />
       <BuzzLedController />
+      <div className="fixed top-3 right-3 z-50 text-xs font-display tracking-widest opacity-60 text-cyan-300">
+        {state.roomCode}
+      </div>
     </>
   );
 }

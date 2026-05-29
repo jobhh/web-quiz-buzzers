@@ -57,7 +57,7 @@ export function BuzzInScreen({ state }: Props) {
       </div>
 
       {/* Question + media: centered vertical block. */}
-      <div className="flex-1 flex flex-col items-center justify-center text-center min-h-0 py-6">
+      <div className="flex-1 flex flex-col items-center justify-start text-center min-h-0 pt-6">
         <motion.h1
           initial={{ y: 24, opacity: 0, scale: 0.94 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}

@@ -274,8 +274,10 @@ export class Room {
     }
     if (result.schedule) {
       const { name, delayMs, event } = result.schedule;
-      // Don't schedule auto-advance while paused.
-      if (!(name === "AUTO_ADVANCE" && this.state.paused)) {
+      if (this.state.paused && name !== "AUTO_ADVANCE") {
+        // Game is paused — store the timer instead of scheduling it.
+        this.pausedGameTimer = { event, remainingMs: delayMs };
+      } else if (!(name === "AUTO_ADVANCE" && this.state.paused)) {
         this.timers.schedule(name, delayMs, () => this.fireTimer(event));
         if (name === "AUTO_ADVANCE") {
           result.state = { ...result.state, autoAdvanceAt: Date.now() + delayMs };

@@ -120,6 +120,19 @@ export function advanceFromIntroOrReveal(
   if (state.phase === "BUZZ_OPEN") {
     return enterReveal(state, rounds, null, null);
   }
+  // From ANSWER_LOCK, host can skip → reveal with no scoring.
+  if (state.phase === "ANSWER_LOCK") {
+    return enterReveal(state, rounds, null, null);
+  }
+  // From FINAL_WAGER, host can skip → open the question for answering immediately.
+  if (state.phase === "FINAL_WAGER") {
+    const wagers = { ...(state.wagers ?? {}) };
+    // Give everyone who hasn't wagered a 0 wager.
+    for (const p of state.players) {
+      if (wagers[p.id] == null) wagers[p.id] = 0;
+    }
+    return enterFinalQuestion({ ...state, wagers });
+  }
   return { state };
 }
 

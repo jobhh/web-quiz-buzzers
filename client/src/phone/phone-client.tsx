@@ -9,6 +9,9 @@ import { WaitingScreen } from "./screens/waiting-screen";
 import { BuzzScreen } from "./screens/buzz-screen";
 import { AnswerScreen } from "./screens/answer-screen";
 import { WagerScreen } from "./screens/wager-screen";
+import { PhoneRevealScreen } from "./screens/phone-reveal-screen";
+import { PhoneScoreboardScreen } from "./screens/phone-scoreboard-screen";
+import { PhoneWinnerScreen } from "./screens/phone-winner-screen";
 import "./phone-styles.css";
 
 // Root component for the phone player route. Subscribes to game state +
@@ -28,10 +31,17 @@ export function PhoneClient() {
   const me = state && stored ? state.players.find((p) => p.id === stored.playerId) : null;
 
   let body: React.ReactNode;
-  if (!state || !me) {
-    body = <JoinScreen initialRoomCode={getRoomCodeFromUrl()} errorMessage={error} />;
-  } else {
+  if (state && me) {
     body = <PhaseScreen state={state} me={me} />;
+  } else if (stored && !error) {
+    // Have a stored session, waiting for reconnect to complete.
+    body = (
+      <div className="phone-root flex items-center justify-center bg-black text-cyan-300">
+        <p className="text-xl font-display tracking-widest opacity-60 animate-pulse">RECONNECTING…</p>
+      </div>
+    );
+  } else {
+    body = <JoinScreen initialRoomCode={getRoomCodeFromUrl()} errorMessage={error} />;
   }
 
   return (
@@ -47,10 +57,13 @@ function PhaseScreen({ state, me }: { state: ReturnType<typeof useGameState> & o
   switch (state.phase) {
     case "LOBBY":
     case "ROUND_INTRO":
-    case "REVEAL":
-    case "SCOREBOARD":
-    case "WINNER":
       return <WaitingScreen state={state} />;
+    case "WINNER":
+      return <PhoneWinnerScreen state={state} />;
+    case "REVEAL":
+      return <PhoneRevealScreen state={state} />;
+    case "SCOREBOARD":
+      return <PhoneScoreboardScreen state={state} />;
     case "BUZZ_OPEN":
       // R2 (speed round) has no buzz step — players tap an answer directly.
       // R1/R3 use the big-red BUZZ button; the buzzer then sees AnswerScreen

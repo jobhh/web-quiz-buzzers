@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { gameSession } from "@client/state/game-session";
 import type { GameState, Player } from "@shared/game-state";
+import { CountdownBar } from "@client/host/components/countdown-bar";
+import { BUZZ_ANSWER_WINDOW_MS, STEAL_ANSWER_WINDOW_MS, FINAL_ANSWER_WINDOW_MS, R2_WINDOW_MS } from "@shared/scoring";
 
 interface Props {
   state: GameState;
@@ -27,6 +29,7 @@ export function AnswerScreen({ state }: Props) {
 
   const onTap = (choice: 0 | 1 | 2 | 3) => {
     if (submitted !== null) return;
+    if (state.wrongAnswers?.includes(choice)) return;
     setSubmitted(choice);
     if (navigator.vibrate) navigator.vibrate(40);
     gameSession.send({ type: "ANSWER", payload: { choice } });
@@ -34,13 +37,19 @@ export function AnswerScreen({ state }: Props) {
 
   return (
     <div className="phone-root flex flex-col bg-black">
-      <header className="px-4 py-2 text-xs uppercase tracking-[0.4em] text-neon-cyan font-display">
-        Pick an answer
+      <header className="px-4 pt-8 pb-4">
+        {q && (
+          <p className="text-xl font-display text-center leading-snug text-neon-cyan mb-2">
+            {q.text}
+          </p>
+        )}
+        <p className="text-xs uppercase tracking-[0.4em] text-cyan-400 font-display text-center">Pick an answer</p>
       </header>
-      <div className={`grid gap-1 flex-1 ${answerCount <= 2 ? "grid-cols-1 grid-rows-2" : "grid-cols-2 grid-rows-2"}`}>
+      <div className="grid gap-2 px-2 h-[50vh] grid-cols-2 grid-rows-2">
         {BUTTONS.slice(0, answerCount).map(({ choice, bg, text }, idx) => {
           const label = q?.answers[choice] ?? letterFor(choice);
-          const inactive = submitted !== null && submitted !== choice;
+          const isWrong = state.wrongAnswers?.includes(choice) ?? false;
+          const inactive = (submitted !== null && submitted !== choice) || isWrong;
           const isMe = submitted === choice;
           return (
             <motion.button
@@ -61,7 +70,7 @@ export function AnswerScreen({ state }: Props) {
               }}
               whileTap={{ scale: 0.92 }}
               onClick={() => onTap(choice)}
-              className={`relative ${bg} ${text} text-2xl font-display px-3 overflow-hidden ${
+              className={`relative ${bg} ${text} text-xl font-display px-2 overflow-hidden ${
                 isMe ? "ring-4 ring-white ring-offset-2 ring-offset-black" : ""
               }`}
             >
@@ -73,16 +82,30 @@ export function AnswerScreen({ state }: Props) {
                   className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-white rounded-full pointer-events-none"
                 />
               )}
-              <span className="block text-4xl font-black opacity-80 drop-shadow">
+              <span className="block text-3xl font-black opacity-80 drop-shadow">
                 {letterFor(choice)}
               </span>
-              <span className="block mt-2 text-base font-bold leading-tight break-words">
+              <span className="block text-base font-bold leading-tight break-words">
                 {label}
               </span>
             </motion.button>
           );
         })}
       </div>
+      {state.buzzWindowEndsAt && (
+        <div className="px-4 py-2">
+          <CountdownBar
+            endsAt={state.buzzWindowEndsAt}
+            totalMs={
+              state.currentRound === 4 ? FINAL_ANSWER_WINDOW_MS
+              : state.currentRound === 2 ? R2_WINDOW_MS
+              : state.lockedOutPlayerIds.length > 0 ? STEAL_ANSWER_WINDOW_MS
+              : BUZZ_ANSWER_WINDOW_MS
+            }
+            paused={state.paused}
+          />
+        </div>
+      )}
       {submitted !== null && (
         <motion.div
           initial={{ y: 24, opacity: 0 }}

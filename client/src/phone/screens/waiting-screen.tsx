@@ -1,6 +1,14 @@
 import { motion } from "framer-motion";
 import type { GameState } from "@shared/game-state";
+import { gameSession } from "@client/state/game-session";
 import { AnimatedBg, SplitText } from "@client/anim";
+
+const WAIT_ANSWER_COLORS = [
+  "bg-blue-500 text-white",
+  "bg-orange-500 text-black",
+  "bg-green-500 text-black",
+  "bg-yellow-400 text-black",
+];
 
 interface Props {
   state: GameState;
@@ -43,6 +51,21 @@ export function WaitingScreen({ state, message }: Props) {
       >
         {subtitle}
       </motion.p>
+      {state.currentQuestion && (
+        <div className="mt-4 w-full max-w-xs">
+          <p className="text-base font-display text-center leading-snug text-neon-cyan mb-2">
+            {state.currentQuestion.text}
+          </p>
+          <div className="grid grid-cols-1 gap-1">
+            {state.currentQuestion.answers.map((a, i) => (
+              <div key={i} className={`${WAIT_ANSWER_COLORS[i]} rounded px-3 py-1.5 flex items-center gap-2 text-xs font-display`}>
+                <span className="font-black opacity-70">{String.fromCharCode(65 + i)}</span>
+                <span className="leading-tight">{a}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <motion.ul
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -70,6 +93,15 @@ export function WaitingScreen({ state, message }: Props) {
           </motion.li>
         ))}
       </motion.ul>
+      {state.phase === "LOBBY" && (
+        <button
+          type="button"
+          onClick={() => { gameSession.send({ type: "LEAVE" }); gameSession.clearStored(); window.location.reload(); }}
+          className="mt-8 px-5 py-2 border border-red-500/60 text-red-400 rounded font-display text-sm uppercase tracking-widest hover:bg-red-950/40"
+        >
+          Leave Game
+        </button>
+      )}
     </div>
   );
 }

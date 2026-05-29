@@ -19,6 +19,8 @@ interface Props {
   animKey?: string | number;
 }
 
+const DEFAULT_FROM: gsap.TweenVars = { yPercent: 120, opacity: 0, rotate: -8 };
+
 // Splits a string into per-char (or per-word) <span>s and animates them in
 // with a GSAP stagger. The text remains selectable + accessible because each
 // span keeps its content. Spaces are preserved as zero-width chars when
@@ -28,7 +30,7 @@ export function SplitText({
   className = "",
   charClassName = "",
   mode = "chars",
-  from = { yPercent: 120, opacity: 0, rotate: -8 },
+  from = DEFAULT_FROM,
   stagger = 0.04,
   duration = 0.7,
   delay = 0,
