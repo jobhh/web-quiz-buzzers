@@ -220,14 +220,14 @@ export function LobbyScreen({ state, serverInfo }: Props) {
           <h2 className="text-sm uppercase tracking-widest opacity-60 mt-6 mb-2 font-display">
             Phone Players ({phonePlayers.length})
           </h2>
-          <ul className="space-y-1">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {phonePlayers.length === 0 && (
-              <li className="opacity-60 text-sm">— scan the QR to join —</li>
+              <p className="opacity-60 text-sm col-span-full">— scan the QR to join —</p>
             )}
             {phonePlayers.map((p) => (
               <PhonePlayerRow key={p.id} player={p} />
             ))}
-          </ul>
+          </div>
         </section>
 
         <aside className="space-y-6">
@@ -300,20 +300,25 @@ export function LobbyScreen({ state, serverInfo }: Props) {
 
 function PhonePlayerRow({ player }: { player: Player }) {
   return (
-    <motion.li
+    <motion.div
       layout
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0 }}
-      className="flex items-center gap-2 text-sm"
+      transition={{ type: "spring", stiffness: 240, damping: 18 }}
+      className="relative border-2 border-neon-cyan bg-cyan-950/40 shadow-neon-cyan rounded p-3 overflow-visible"
     >
-      <span
-        className={`inline-block w-2 h-2 rounded-full ${
-          player.connected ? "bg-neon-green animate-pulse" : "bg-gray-500"
-        }`}
-      />
-      <span className="opacity-80">📱</span>
-      <span className="font-bold">{player.name}</span>
-    </motion.li>
+      <div className="flex items-center gap-2 mb-2">
+        <span
+          className={`inline-block w-3 h-3 rounded-full ${
+            player.connected ? "bg-neon-green animate-pulse" : "bg-gray-500"
+          }`}
+        />
+        <span className="font-display text-sm tracking-wider">📱</span>
+      </div>
+      <p className="text-lg font-display tracking-wider text-cyan-100 truncate">
+        {player.name}
+      </p>
+    </motion.div>
   );
 }

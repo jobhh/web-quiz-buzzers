@@ -24,7 +24,7 @@ export function WaitingScreen({ state, message }: Props) {
         initial={{ scale: 0.6, opacity: 0, y: 12 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
-        className="text-4xl md:text-5xl font-display text-neon-pink mt-3 tracking-wider text-center text-glow-pink"
+        className="text-3xl md:text-5xl font-display text-neon-pink mt-3 tracking-wide text-center text-glow-pink whitespace-nowrap"
       >
         <SplitText
           text={phaseTitle(state.phase)}
