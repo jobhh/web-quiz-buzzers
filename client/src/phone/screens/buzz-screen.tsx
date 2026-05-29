@@ -102,16 +102,6 @@ export function BuzzScreen({ state, me }: Props) {
           </div>
         </div>
       )}
-      {/* Countdown */}
-      {state.buzzWindowEndsAt && (
-        <div className="px-4 mb-2">
-          <CountdownBar
-            endsAt={state.buzzWindowEndsAt}
-            totalMs={state.currentRound === 2 ? R2_WINDOW_MS : BUZZ_OPEN_IDLE_MS}
-            paused={state.paused}
-          />
-        </div>
-      )}
       {/* Buzz button */}
       <div className="mt-auto flex justify-center pb-6">
         <motion.button
@@ -129,6 +119,16 @@ export function BuzzScreen({ state, me }: Props) {
           {armed ? "BUZZ IN!" : "Buzzed!"}
         </motion.button>
       </div>
+      {/* Countdown */}
+      {state.buzzWindowEndsAt && (
+        <div className="px-4 pb-6">
+          <CountdownBar
+            endsAt={state.buzzWindowEndsAt}
+            totalMs={state.currentRound === 2 ? R2_WINDOW_MS : BUZZ_OPEN_IDLE_MS}
+            paused={state.paused}
+          />
+        </div>
+      )}
     </div>
   );
 }
